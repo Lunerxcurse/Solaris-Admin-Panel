@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Solaris Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: #0d0e0f; color: #e3e2e2;
+    font-family: Inter, system-ui, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 24px 16px 60px; }
+  h1 { font-size: 20px; font-weight: 700; margin: 0 0 4px; }
+  .sub { color: #9a9a9a; font-size: 13px; margin: 0 0 24px; }
+
+  #login-card {
+    max-width: 360px; margin: 80px auto 0; background: #1a1a1a;
+    border: 1px solid #2a2a2a; border-radius: 16px; padding: 28px;
+  }
+  #login-card h1 { text-align: center; margin-bottom: 20px; }
+  #login-card input {
+    width: 100%; background: #121414; border: 1px solid #2a2a2a; border-radius: 10px;
+    padding: 11px 13px; color: #e3e2e2; font-size: 14px; margin-bottom: 10px; outline: none;
+    letter-spacing: 2px; text-align: center;
+  }
+  #login-card input:focus { border-color: #007bff; }
+  #login-card button {
+    width: 100%; background: #007bff; color: #fff; border: none; border-radius: 10px;
+    padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 4px;
+  }
+  #login-card button:disabled { opacity: .5; cursor: default; }
+  #login-error { color: #ff6b6b; font-size: 13px; min-height: 16px; margin-top: 8px; text-align: center; }
+
+  #dash { display: none; }
+  .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 10px; flex-wrap: wrap; }
+  #search {
+    flex: 1; min-width: 180px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px;
+    padding: 10px 13px; color: #e3e2e2; font-size: 14px; outline: none;
+  }
+  #search:focus { border-color: #007bff; }
+  #signout-btn { background: #1a1a1a; border: 1px solid #2a2a2a; color: #9a9a9a; border-radius: 10px; padding: 10px 14px; font-size: 13px; cursor: pointer; }
+  #signout-btn:hover { color: #e3e2e2; }
+
+  .row-card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
+  .row-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .who { min-width: 0; }
+  .uname { font-weight: 600; font-size: 15px; }
+  .uemail { color: #9a9a9a; font-size: 13px; margin-top: 1px; word-break: break-all; }
+  .badges { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+  .badge.banned { background: rgba(255,71,71,.15); color: #ff6b6b; border: 1px solid rgba(255,71,71,.3); }
+  .badge.warn { background: rgba(255,193,7,.15); color: #ffc93c; border: 1px solid rgba(255,193,7,.3); }
+
+  .actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .actions button {
+    border: 1px solid #2a2a2a; background: #121414; color: #e3e2e2; border-radius: 8px;
+    padding: 8px 12px; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap;
+  }
+  .actions button:hover { background: #252525; }
+  .actions button.ban { color: #ff6b6b; }
+  .actions button.ban.active { background: rgba(255,71,71,.15); border-color: rgba(255,71,71,.4); }
+  .actions button.warn { color: #6bb2ff; }
+  .actions button:disabled { opacity: .4; cursor: default; }
+
+  #empty, #loading { text-align: center; color: #9a9a9a; padding: 40px 0; font-size: 14px; }
+
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6);
+    align-items: center; justify-content: center; padding: 16px; z-index: 100;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-card {
+    width: 100%; max-width: 360px; background: #1a1a1a; border: 1px solid #2a2a2a;
+    border-radius: 16px; padding: 20px;
+  }
+  .modal-card h2 { font-size: 16px; margin: 0 0 2px; }
+  .modal-card .modal-sub { color: #9a9a9a; font-size: 13px; margin: 0 0 16px; word-break: break-all; }
+  .modal-card label { display: block; font-size: 12px; color: #9a9a9a; margin-bottom: 6px; font-weight: 600; }
+  .modal-card select, .modal-card input[type="text"] {
+    width: 100%; background: #121414; border: 1px solid #2a2a2a; border-radius: 10px;
+    padding: 10px 12px; color: #e3e2e2; font-size: 14px; outline: none; margin-bottom: 14px;
+  }
+  .modal-card select:focus, .modal-card input[type="text"]:focus { border-color: #007bff; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .modal-actions button {
+    border: 1px solid #2a2a2a; background: #121414; color: #e3e2e2; border-radius: 10px;
+    padding: 10px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .modal-actions button.confirm { background: #ff4747; border-color: #ff4747; color: #fff; }
+  .modal-actions button:disabled { opacity: .5; cursor: default; }
+</style>
+</head>
+<body>
+
+<div id="login-card">
+  <h1>Solaris Admin</h1>
+  <input id="li-code" type="password" inputmode="numeric" placeholder="Access code" autocomplete="off" />
+  <button id="li-btn">Enter</button>
+  <div id="login-error"></div>
+</div>
+
+<div class="wrap" id="dash">
+  <h1>Solaris Admin</h1>
+  <p class="sub">Registered accounts — username and email pulled from <code>solaris_app_data</code>.</p>
+  <div class="toolbar">
+    <input id="search" type="text" placeholder="Search by username or email…" />
+    <button id="signout-btn">Lock</button>
+  </div>
+  <div id="loading">Loading accounts…</div>
+  <div id="empty" style="display:none;">No accounts found.</div>
+  <div id="list"></div>
+</div>
+
+<div class="modal-overlay" id="ban-modal">
+  <div class="modal-card">
+    <h2>Ban user</h2>
+    <p class="modal-sub" id="ban-modal-who"></p>
+    <label for="ban-duration">Duration</label>
+    <select id="ban-duration">
+      <option value="1h">1 hour</option>
+      <option value="3h">3 hours</option>
+      <option value="1d">1 day</option>
+      <option value="3d">3 days</option>
+      <option value="1w">1 week</option>
+      <option value="2w">2 weeks</option>
+      <option value="1mo">1 month</option>
+      <option value="2mo">2 months</option>
+      <option value="permanent">Permanent</option>
+    </select>
+    <label for="ban-reason">Reason (required)</label>
+    <input id="ban-reason" type="text" placeholder="Reason…" autocomplete="off" />
+    <div id="ban-reason-error" style="display:none; color:#ff6b6b; font-size:12px; margin:-10px 0 14px;">A reason is required.</div>
+    <div class="modal-actions">
+      <button id="ban-cancel-btn" type="button">Cancel</button>
+      <button id="ban-confirm-btn" class="confirm" type="button">Ban</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://vdoovrjuwuclrgtcoxkd.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_YAMzS7O3xYrWaFsld8viFQ_Pv0vyjRT';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let rows = [];
+let accessCode = null; // kept in memory only — never written to localStorage
+
+const $ = (id) => document.getElementById(id);
+
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+async function loadRows() {
+  $('loading').style.display = 'block';
+  $('list').innerHTML = '';
+  const { data, error } = await sb.rpc('admin_list_accounts', { code: accessCode });
+  $('loading').style.display = 'none';
+
+  if (error) {
+    console.warn('Solaris Admin: load failed', error);
+    $('empty').textContent = 'Could not load accounts: ' + error.message;
+    $('empty').style.display = 'block';
+    return;
+  }
+  rows = data || [];
+  render();
+}
+
+function render() {
+  const q = $('search').value.trim().toLowerCase();
+  const filtered = rows.filter(r =>
+    !q || (r.username || '').toLowerCase().includes(q) || (r.email || '').toLowerCase().includes(q)
+  );
+  $('empty').style.display = filtered.length ? 'none' : 'block';
+  $('list').innerHTML = filtered.map(r => rowHtml(r)).join('');
+  filtered.forEach(r => wireRow(r));
+}
+
+function rowHtml(r) {
+  const name = r.username || '(no username set)';
+  const badges = [
+    r.banned ? `<span class="badge banned">Banned${r.ban_reason ? ': ' + escapeHtml(r.ban_reason) : ''}</span>` : '',
+    r.warning_count > 0 ? `<span class="badge warn">${r.warning_count} warning${r.warning_count === 1 ? '' : 's'}</span>` : ''
+  ].join('');
+  return `
+    <div class="row-card" data-uid="${r.user_id}">
+      <div class="row-top">
+        <div class="who">
+          <div class="uname">${escapeHtml(name)}</div>
+          <div class="uemail">${escapeHtml(r.email || '')}</div>
+          <div class="badges">${badges}</div>
+        </div>
+        <div class="actions">
+          <button class="ban ${r.banned ? 'active' : ''}" data-act="ban">${r.banned ? 'Unban' : 'Ban'}</button>
+          <button class="warn" data-act="warn">Warn</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function wireRow(r) {
+  const card = document.querySelector(`.row-card[data-uid="${r.user_id}"]`);
+  if (!card) return;
+  card.querySelectorAll('button[data-act]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const act = btn.dataset.act;
+      btn.disabled = true;
+      try {
+        if (act === 'ban') {
+          if (r.banned) {
+            await call('admin_unban_user', { code: accessCode, target_user_id: r.user_id });
+          } else {
+            openBanModal(r, btn);
+            return; // modal handles the call + re-enabling + reload
+          }
+        } else if (act === 'warn') {
+          const message = prompt(`Warning message for ${r.username || r.email}:`);
+          if (!message) { btn.disabled = false; return; }
+          await call('admin_warn_user', { code: accessCode, target_user_id: r.user_id, message });
+        }
+        await loadRows();
+      } catch (e) {
+        alert('Action failed: ' + (e.message || 'unknown error'));
+        btn.disabled = false;
+      }
+    });
+  });
+}
+
+async function call(fn, args) {
+  const { error } = await sb.rpc(fn, args);
+  if (error) throw error;
+}
+
+let banCtx = null; // { r, btn } for the row currently in the ban modal
+
+function openBanModal(r, btn) {
+  banCtx = { r, btn };
+  $('ban-modal-who').textContent = `Choose a duration for ${r.username || r.email}.`;
+  $('ban-duration').value = '1h';
+  $('ban-reason').value = '';
+  $('ban-reason-error').style.display = 'none';
+  $('ban-modal').classList.add('open');
+  $('ban-duration').focus();
+}
+
+function closeBanModal(reenableBtn) {
+  if (reenableBtn && banCtx) banCtx.btn.disabled = false;
+  banCtx = null;
+  $('ban-modal').classList.remove('open');
+}
+
+$('ban-cancel-btn').addEventListener('click', () => closeBanModal(true));
+$('ban-modal').addEventListener('click', (e) => { if (e.target === $('ban-modal')) closeBanModal(true); });
+
+$('ban-confirm-btn').addEventListener('click', async () => {
+  if (!banCtx) return;
+  const { r } = banCtx;
+  const duration = $('ban-duration').value;
+  const reason = $('ban-reason').value.trim();
+  if (!reason) {
+    $('ban-reason-error').style.display = 'block';
+    $('ban-reason').focus();
+    return;
+  }
+  $('ban-reason-error').style.display = 'none';
+  $('ban-confirm-btn').disabled = true;
+  try {
+    await call('admin_ban_user', { code: accessCode, target_user_id: r.user_id, duration, reason });
+    closeBanModal(false);
+    await loadRows();
+  } catch (e) {
+    alert('Action failed: ' + (e.message || 'unknown error'));
+    if (banCtx) banCtx.btn.disabled = false;
+  } finally {
+    $('ban-confirm-btn').disabled = false;
+  }
+});
+
+$('search').addEventListener('input', render);
+$('signout-btn').addEventListener('click', () => location.reload());
+
+$('li-btn').addEventListener('click', doLogin);
+$('li-code').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+
+async function doLogin() {
+  $('login-error').textContent = '';
+  $('li-btn').disabled = true;
+  const code = $('li-code').value.trim();
+  const { error } = await sb.rpc('admin_list_accounts', { code });
+  $('li-btn').disabled = false;
+  if (error) { $('login-error').textContent = 'Wrong code.'; return; }
+  accessCode = code;
+  $('login-card').style.display = 'none';
+  $('dash').style.display = 'block';
+  loadRows();
+}
+</script>
+</body>
+</html>
