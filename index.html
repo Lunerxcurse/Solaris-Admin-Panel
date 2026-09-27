@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Solaris Admin</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   :root { color-scheme: dark; }
@@ -55,7 +56,12 @@
   .badges { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
   .badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
   .badge.banned { background: rgba(255,71,71,.15); color: #ff6b6b; border: 1px solid rgba(255,71,71,.3); }
-  .badge.warn { background: rgba(255,193,7,.15); color: #ffc93c; border: 1px solid rgba(255,193,7,.3); }
+  .badge.warncount { background: #202020; color: #9a9a9a; border: 1px solid #2a2a2a; }
+
+  .uname-row { display: flex; align-items: center; gap: 7px; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: #4a4a4a; }
+  .status-dot.online { background: #2ecc71; box-shadow: 0 0 0 2px rgba(46,204,113,.2); }
+  .status-dot.offline { background: #4a4a4a; }
 
   .actions { display: flex; gap: 8px; flex-shrink: 0; }
   .actions button {
@@ -63,10 +69,24 @@
     padding: 8px 12px; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap;
   }
   .actions button:hover { background: #252525; }
+  .actions button.warn { color: #f5a524; }
   .actions button.ban { color: #ff6b6b; }
   .actions button.ban.active { background: rgba(255,71,71,.15); border-color: rgba(255,71,71,.4); }
-  .actions button.warn { color: #6bb2ff; }
   .actions button:disabled { opacity: .4; cursor: default; }
+  .actions button.troll { color: #b06bff; }
+
+  .troll-wrap { position: relative; }
+  .troll-menu {
+    display: none; position: absolute; top: calc(100% + 6px); right: 0; z-index: 20;
+    min-width: 190px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px;
+    padding: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  }
+  .troll-menu.open { display: block; }
+  .troll-menu button {
+    display: block; width: 100%; text-align: left; background: none; border: none;
+    color: #e3e2e2; font-size: 13px; padding: 9px 10px; border-radius: 7px; cursor: pointer;
+  }
+  .troll-menu button:hover { background: #252525; }
 
   #empty, #loading { text-align: center; color: #9a9a9a; padding: 40px 0; font-size: 14px; }
 
@@ -74,11 +94,18 @@
     display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6);
     align-items: center; justify-content: center; padding: 16px; z-index: 100;
   }
-  .modal-overlay.open { display: flex; }
+  .modal-overlay.open { display: flex; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
   .modal-card {
     width: 100%; max-width: 360px; background: #1a1a1a; border: 1px solid #2a2a2a;
     border-radius: 16px; padding: 20px;
   }
+  #data-modal .modal-card { max-width: 560px; }
+  #data-json {
+    width: 100%; min-height: 340px; background: #121414; border: 1px solid #2a2a2a; border-radius: 10px;
+    padding: 10px 12px; color: #e3e2e2; font-size: 12.5px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    outline: none; resize: vertical; white-space: pre; margin-bottom: 6px; line-height: 1.5;
+  }
+  #data-json:focus { border-color: #007bff; }
   .modal-card h2 { font-size: 16px; margin: 0 0 2px; }
   .modal-card .modal-sub { color: #9a9a9a; font-size: 13px; margin: 0 0 16px; word-break: break-all; }
   .modal-card label { display: block; font-size: 12px; color: #9a9a9a; margin-bottom: 6px; font-weight: 600; }
@@ -93,7 +120,11 @@
     padding: 10px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
   }
   .modal-actions button.confirm { background: #ff4747; border-color: #ff4747; color: #fff; }
+  .modal-actions button.confirm-warn { background: #f5a524; border-color: #f5a524; color: #1a1200; }
   .modal-actions button:disabled { opacity: .5; cursor: default; }
+
+  .actions button.icon-btn { padding: 8px 10px; color: #9a9a9a; display: flex; align-items: center; }
+  .actions button.icon-btn:hover { color: #e3e2e2; }
 </style>
 </head>
 <body>
@@ -143,6 +174,33 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="warn-modal">
+  <div class="modal-card">
+    <h2>Warn user</h2>
+    <p class="modal-sub" id="warn-modal-who"></p>
+    <label for="warn-reason">Reason (required)</label>
+    <input id="warn-reason" type="text" placeholder="Reason…" autocomplete="off" />
+    <div id="warn-reason-error" style="display:none; color:#ff6b6b; font-size:12px; margin:-10px 0 14px;">A reason is required.</div>
+    <div class="modal-actions">
+      <button id="warn-cancel-btn" type="button">Cancel</button>
+      <button id="warn-confirm-btn" class="confirm-warn" type="button">Warn</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="data-modal">
+  <div class="modal-card">
+    <h2>Check Data</h2>
+    <p class="modal-sub" id="data-modal-who"></p>
+    <label for="data-json">Synced local storage snapshot (read-only)</label>
+    <textarea id="data-json" spellcheck="false" readonly></textarea>
+    <div id="data-json-error" style="display:none; color:#ff6b6b; font-size:12px; margin:0 0 10px;">Could not load data.</div>
+    <div class="modal-actions">
+      <button id="data-cancel-btn" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const SUPABASE_URL = 'https://vdoovrjuwuclrgtcoxkd.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_YAMzS7O3xYrWaFsld8viFQ_Pv0vyjRT';
@@ -181,25 +239,92 @@ function render() {
   $('empty').style.display = filtered.length ? 'none' : 'block';
   $('list').innerHTML = filtered.map(r => rowHtml(r)).join('');
   filtered.forEach(r => wireRow(r));
+  refreshAllStatusDots();
 }
+
+// --------------------------------------------------------------------
+// Online/Offline status. Every signed-in mobile client tracks itself
+// (keyed by its own user_id) on one shared Realtime Presence channel,
+// 'online-presence' (see supabase-sync.js). We just join that same
+// channel here — without ever calling track() ourselves, so the admin
+// panel never shows up as an "online account" — and read who else is
+// on it. Presence membership is maintained by Supabase itself off the
+// websocket connection, so a closed tab/lost connection drops out on
+// its own; nothing here needs to poll or time anything out.
+// --------------------------------------------------------------------
+let onlineUserIds = new Set();
+let presenceChannel = null;
+
+function initPresenceTracking() {
+  presenceChannel = sb.channel('online-presence');
+  presenceChannel.on('presence', { event: 'sync' }, () => {
+    onlineUserIds = new Set(Object.keys(presenceChannel.presenceState()));
+    refreshAllStatusDots();
+  });
+  presenceChannel.subscribe();
+}
+
+function refreshAllStatusDots() {
+  document.querySelectorAll('[data-status-dot]').forEach(dot => {
+    const uid = dot.dataset.statusDot;
+    const isOnline = onlineUserIds.has(uid);
+    dot.classList.toggle('online', isOnline);
+    dot.classList.toggle('offline', !isOnline);
+    dot.title = isOnline ? 'Online' : 'Offline';
+  });
+}
+
+initPresenceTracking();
 
 function rowHtml(r) {
   const name = r.username || '(no username set)';
   const badges = [
     r.banned ? `<span class="badge banned">Banned${r.ban_reason ? ': ' + escapeHtml(r.ban_reason) : ''}</span>` : '',
-    r.warning_count > 0 ? `<span class="badge warn">${r.warning_count} warning${r.warning_count === 1 ? '' : 's'}</span>` : ''
+    r.warning_count ? `<span class="badge warncount">${r.warning_count} warning${r.warning_count === 1 ? '' : 's'} total</span>` : ''
   ].join('');
   return `
     <div class="row-card" data-uid="${r.user_id}">
       <div class="row-top">
         <div class="who">
-          <div class="uname">${escapeHtml(name)}</div>
+          <div class="uname-row">
+            <span class="status-dot" data-status-dot="${r.user_id}" title="Offline"></span>
+            <div class="uname">${escapeHtml(name)}</div>
+          </div>
           <div class="uemail">${escapeHtml(r.email || '')}</div>
           <div class="badges">${badges}</div>
         </div>
         <div class="actions">
-          <button class="ban ${r.banned ? 'active' : ''}" data-act="ban">${r.banned ? 'Unban' : 'Ban'}</button>
+          <button class="icon-btn" data-act="data" title="Check Data" aria-label="Check Data">
+            <i class="fa-solid fa-database" style="font-size:14px;"></i>
+          </button>
           <button class="warn" data-act="warn">Warn</button>
+          <button class="ban ${r.banned ? 'active' : ''}" data-act="ban">${r.banned ? 'Unban' : 'Ban'}</button>
+          <div class="troll-wrap">
+            <button class="troll" data-act="troll">Troll</button>
+            <div class="troll-menu" data-menu="root">
+              <button type="button" data-troll-nav="sounds">Sounds ›</button>
+              <button type="button" data-troll-nav="jumpscares">Jumpscares ›</button>
+              <button type="button" data-troll-nav="effects">Screen Effects ›</button>
+            </div>
+            <div class="troll-menu" data-menu="sounds">
+              <button type="button" data-troll-nav="root">‹ Back</button>
+              <button type="button" data-jumpscare="fart">Fart</button>
+              <button type="button" data-jumpscare="strict-dad">Weird Strict Dad</button>
+              <button type="button" data-jumpscare="apple-pay">Apple Pay</button>
+              <button type="button" data-jumpscare="door-knock">Door Knock</button>
+              <button type="button" data-jumpscare="discord">Discord Notification</button>
+            </div>
+            <div class="troll-menu" data-menu="jumpscares">
+              <button type="button" data-troll-nav="root">‹ Back</button>
+              <button type="button" data-jumpscare="fnaf">FNAF Jumpscare</button>
+            </div>
+            <div class="troll-menu" data-menu="effects">
+              <button type="button" data-troll-nav="root">‹ Back</button>
+              <button type="button" data-jumpscare="shake">Screen Shake</button>
+              <button type="button" data-jumpscare="flip">Screen Flip</button>
+              <button type="button" data-jumpscare="wobble">Screen Wobble</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>`;
@@ -208,11 +333,83 @@ function rowHtml(r) {
 function wireRow(r) {
   const card = document.querySelector(`.row-card[data-uid="${r.user_id}"]`);
   if (!card) return;
+
+  const trollBtn = card.querySelector('button[data-act="troll"]');
+  const trollWrap = card.querySelector('.troll-wrap');
+  const trollMenus = card.querySelectorAll('.troll-menu');
+  const rootMenu = card.querySelector('.troll-menu[data-menu="root"]');
+  const soundsMenu = card.querySelector('.troll-menu[data-menu="sounds"]');
+  const jumpscaresMenu = card.querySelector('.troll-menu[data-menu="jumpscares"]');
+  const effectsMenu = card.querySelector('.troll-menu[data-menu="effects"]');
+
+  function showTrollMenu(which) {
+    trollMenus.forEach(m => m.classList.toggle('open', m === which));
+  }
+  function closeTrollMenu() {
+    trollMenus.forEach(m => m.classList.remove('open'));
+  }
+
+  if (trollBtn && rootMenu) {
+    trollBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const wasOpen = [...trollMenus].some(m => m.classList.contains('open'));
+      document.querySelectorAll('.troll-menu.open').forEach(m => m.classList.remove('open'));
+      if (!wasOpen) showTrollMenu(rootMenu); // always reopen on the root menu
+    });
+
+    // Sounds › / Jumpscares › / ‹ Back — just switch which panel of the dropdown shows.
+    const navTargets = { sounds: soundsMenu, jumpscares: jumpscaresMenu, effects: effectsMenu, root: rootMenu };
+    trollWrap.querySelectorAll('button[data-troll-nav]').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const target = navTargets[item.dataset.trollNav] || rootMenu;
+        showTrollMenu(target);
+      });
+    });
+
+    // Sounds (Fart, Weird Strict Dad) and Jumpscares (FNAF) both send the same
+    // one-off Supabase realtime broadcast on this user's 'jumpscare:<user_id>'
+    // channel; index.html (via supabase-sync.js) is listening on that same
+    // channel and reacts to it — playing just the sound for a Sounds entry,
+    // or the full jumpscare overlay for a Jumpscares entry — when it arrives.
+    // Nothing is stored — if the person isn't online right now, there's
+    // simply nothing to receive it.
+    trollWrap.querySelectorAll('button[data-jumpscare]').forEach(item => {
+      item.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const kind = item.dataset.jumpscare;
+        const original = item.textContent;
+        item.disabled = true;
+        item.textContent = 'Sending…';
+        try {
+          await sendJumpscare(r.user_id, kind);
+          item.disabled = false;
+          item.textContent = original;
+        } catch (err) {
+          item.textContent = 'Could Not be Sent';
+          window.setTimeout(() => {
+            item.disabled = false;
+            item.textContent = original;
+          }, 1500);
+        }
+      });
+    });
+  }
+
   card.querySelectorAll('button[data-act]').forEach(btn => {
+    if (btn.dataset.act === 'troll') return; // handled above, not a Supabase action
     btn.addEventListener('click', async () => {
       const act = btn.dataset.act;
       btn.disabled = true;
       try {
+        if (act === 'data') {
+          openDataModal(r, btn);
+          return; // modal handles the reload/close + re-enabling
+        }
+        if (act === 'warn') {
+          openWarnModal(r, btn);
+          return; // modal handles the call + re-enabling + reload
+        }
         if (act === 'ban') {
           if (r.banned) {
             await call('admin_unban_user', { code: accessCode, target_user_id: r.user_id });
@@ -220,10 +417,6 @@ function wireRow(r) {
             openBanModal(r, btn);
             return; // modal handles the call + re-enabling + reload
           }
-        } else if (act === 'warn') {
-          const message = prompt(`Warning message for ${r.username || r.email}:`);
-          if (!message) { btn.disabled = false; return; }
-          await call('admin_warn_user', { code: accessCode, target_user_id: r.user_id, message });
         }
         await loadRows();
       } catch (e) {
@@ -238,6 +431,46 @@ async function call(fn, args) {
   const { error } = await sb.rpc(fn, args);
   if (error) throw error;
 }
+
+// Sends a jumpscare to one account via a Supabase realtime broadcast on
+// 'jumpscare:<target_user_id>' — a throwaway channel just for this message,
+// not a database row. Resolves once the message has actually gone out (or
+// rejects on failure/timeout) so the button can show "Sending…" honestly.
+function sendJumpscare(targetUserId, kind) {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const channel = sb.channel('jumpscare:' + targetUserId, { config: { broadcast: { self: false } } });
+    const timeout = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      try { sb.removeChannel(channel); } catch (e) {}
+      reject(new Error('Timed out — they may not be online right now.'));
+    }, 6000);
+
+    channel.subscribe((status) => {
+      if (settled || status !== 'SUBSCRIBED') return;
+      channel.send({ type: 'broadcast', event: 'trigger', payload: { type: kind } })
+        .then(() => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timeout);
+          setTimeout(() => { try { sb.removeChannel(channel); } catch (e) {} }, 500);
+          resolve();
+        })
+        .catch((err) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timeout);
+          try { sb.removeChannel(channel); } catch (e) {}
+          reject(err);
+        });
+    });
+  });
+}
+
+document.addEventListener('click', () => {
+  document.querySelectorAll('.troll-menu.open').forEach(m => m.classList.remove('open'));
+});
 
 let banCtx = null; // { r, btn } for the row currently in the ban modal
 
@@ -283,6 +516,81 @@ $('ban-confirm-btn').addEventListener('click', async () => {
     $('ban-confirm-btn').disabled = false;
   }
 });
+
+let warnCtx = null; // { r, btn } for the row currently in the warn modal
+
+function openWarnModal(r, btn) {
+  warnCtx = { r, btn };
+  $('warn-modal-who').textContent = `Send a warning to ${r.username || r.email}.`;
+  $('warn-reason').value = '';
+  $('warn-reason-error').style.display = 'none';
+  $('warn-modal').classList.add('open');
+  $('warn-reason').focus();
+}
+
+function closeWarnModal(reenableBtn) {
+  if (reenableBtn && warnCtx) warnCtx.btn.disabled = false;
+  warnCtx = null;
+  $('warn-modal').classList.remove('open');
+}
+
+$('warn-cancel-btn').addEventListener('click', () => closeWarnModal(true));
+$('warn-modal').addEventListener('click', (e) => { if (e.target === $('warn-modal')) closeWarnModal(true); });
+
+$('warn-confirm-btn').addEventListener('click', async () => {
+  if (!warnCtx) return;
+  const { r } = warnCtx;
+  const reason = $('warn-reason').value.trim();
+  if (!reason) {
+    $('warn-reason-error').style.display = 'block';
+    $('warn-reason').focus();
+    return;
+  }
+  $('warn-reason-error').style.display = 'none';
+  $('warn-confirm-btn').disabled = true;
+  try {
+    await call('admin_warn_user', { code: accessCode, target_user_id: r.user_id, reason });
+    closeWarnModal(false);
+    await loadRows();
+  } catch (e) {
+    alert('Action failed: ' + (e.message || 'unknown error'));
+    if (warnCtx) warnCtx.btn.disabled = false;
+  } finally {
+    $('warn-confirm-btn').disabled = false;
+  }
+});
+
+let dataCtx = null; // { r, btn } for the row currently in the data modal
+
+async function openDataModal(r, btn) {
+  dataCtx = { r, btn };
+  $('data-modal-who').textContent = `${r.username || r.email} — this is the account's synced local storage snapshot.`;
+  $('data-json').value = 'Loading…';
+  $('data-json-error').style.display = 'none';
+  $('data-modal').classList.add('open');
+
+  const { data, error } = await sb.rpc('admin_get_user_data', { code: accessCode, target_user_id: r.user_id });
+  // The modal may have been closed (or reopened for someone else) while
+  // this was in flight — don't clobber whatever's showing now.
+  if (!dataCtx || dataCtx.r.user_id !== r.user_id) return;
+
+  if (error) {
+    $('data-json').value = '';
+    $('data-json-error').textContent = 'Could not load: ' + (error.message || 'unknown error');
+    $('data-json-error').style.display = 'block';
+    return;
+  }
+  $('data-json').value = JSON.stringify(data || {}, null, 2);
+}
+
+function closeDataModal(reenableBtn) {
+  if (reenableBtn && dataCtx) dataCtx.btn.disabled = false;
+  dataCtx = null;
+  $('data-modal').classList.remove('open');
+}
+
+$('data-cancel-btn').addEventListener('click', () => closeDataModal(true));
+$('data-modal').addEventListener('click', (e) => { if (e.target === $('data-modal')) closeDataModal(true); });
 
 $('search').addEventListener('input', render);
 $('signout-btn').addEventListener('click', () => location.reload());
