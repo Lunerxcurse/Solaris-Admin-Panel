@@ -1,158 +1,643 @@
-<!DOCTYPE html>
-<html lang="en" class="dark">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<!DOCTYPE html><html lang="en" class="dark"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Solaris Admin</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <style>
-  :root { color-scheme: dark; }
+  :root {
+    color-scheme: dark;
+    --bg-base: #090a0f;
+    --bg-surface: #12141a;
+    --bg-surface-elevated: #181b24;
+    --bg-surface-hover: #1f232e;
+    --border: #232733;
+    --border-light: #2c3242;
+    --text-primary: #f1f3f9;
+    --text-secondary: #949eb5;
+    --text-muted: #626d84;
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --primary-subtle: rgba(59, 130, 246, 0.12);
+    --danger: #ef4444;
+    --danger-subtle: rgba(239, 68, 68, 0.14);
+    --danger-border: rgba(239, 68, 68, 0.35);
+    --warning: #f59e0b;
+    --warning-subtle: rgba(245, 158, 11, 0.14);
+    --warning-border: rgba(245, 158, 11, 0.35);
+    --success: #10b981;
+    --success-subtle: rgba(16, 185, 129, 0.14);
+    --purple: #a855f7;
+    --purple-subtle: rgba(168, 85, 247, 0.14);
+  }
+
   * { box-sizing: border-box; }
   body {
-    margin: 0; min-height: 100vh; background: #0d0e0f; color: #e3e2e2;
-    font-family: Inter, system-ui, sans-serif;
+    margin: 0; min-height: 100vh;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
-  .wrap { max-width: 960px; margin: 0 auto; padding: 24px 16px 60px; }
-  h1 { font-size: 20px; font-weight: 700; margin: 0 0 4px; }
-  .sub { color: #9a9a9a; font-size: 13px; margin: 0 0 24px; }
 
+  /* Login view */
   #login-card {
-    max-width: 360px; margin: 80px auto 0; background: #1a1a1a;
-    border: 1px solid #2a2a2a; border-radius: 16px; padding: 28px;
+    max-width: 380px;
+    margin: 120px auto 0;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 28px;
+    box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.5);
   }
-  #login-card h1 { text-align: center; margin-bottom: 20px; }
+  .brand-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .brand-header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .login-desc {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: -14px 0 22px;
+  }
   #login-card input {
-    width: 100%; background: #121414; border: 1px solid #2a2a2a; border-radius: 10px;
-    padding: 11px 13px; color: #e3e2e2; font-size: 14px; margin-bottom: 10px; outline: none;
-    letter-spacing: 2px; text-align: center;
+    width: 100%;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 13px 16px;
+    color: var(--text-primary);
+    font-size: 15px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 3px;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
-  #login-card input:focus { border-color: #007bff; }
+  #login-card input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-subtle);
+  }
   #login-card button {
-    width: 100%; background: #007bff; color: #fff; border: none; border-radius: 10px;
-    padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 4px;
+    width: 100%;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 14px;
+    transition: background-color 0.15s ease;
   }
-  #login-card button:disabled { opacity: .5; cursor: default; }
-  #login-error { color: #ff6b6b; font-size: 13px; min-height: 16px; margin-top: 8px; text-align: center; }
+  #login-card button:hover { background: var(--primary-hover); }
+  #login-card button:disabled { opacity: 0.5; cursor: not-allowed; }
+  #login-error {
+    color: var(--danger);
+    font-size: 13px;
+    min-height: 18px;
+    margin-top: 12px;
+    text-align: center;
+    font-weight: 500;
+  }
 
+  /* App Layout & Header */
   #dash { display: none; }
-  .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 10px; flex-wrap: wrap; }
+  .badge-online {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--success);
+    background: var(--success-subtle);
+    border: 1px solid var(--success-subtle);
+    border-radius: 6px;
+    padding: 2px 7px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .badge-online .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--success);
+    flex-shrink: 0;
+  }
+
+  .main-wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
+  }
+
+  /* Stats and Section header */
+  .page-header {
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .page-header h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 6px;
+  }
+  .page-header p {
+    color: var(--text-secondary);
+    font-size: 13.5px;
+    margin: 0;
+  }
+  .page-header code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-surface);
+    padding: 2px 6px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    font-size: 12px;
+  }
+
+  /* Toolbar */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .search-wrap {
+    flex: 1;
+    min-width: 260px;
+    position: relative;
+  }
+  .search-wrap i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 14px;
+    pointer-events: none;
+  }
   #search {
-    flex: 1; min-width: 180px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px;
-    padding: 10px 13px; color: #e3e2e2; font-size: 14px; outline: none;
+    width: 100%;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px 10px 38px;
+    color: var(--text-primary);
+    font-size: 14px;
+    outline: none;
+    transition: all 0.15s ease;
   }
-  #search:focus { border-color: #007bff; }
-  #signout-btn { background: #1a1a1a; border: 1px solid #2a2a2a; color: #9a9a9a; border-radius: 10px; padding: 10px 14px; font-size: 13px; cursor: pointer; }
-  #signout-btn:hover { color: #e3e2e2; }
+  #search:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-subtle);
+  }
+  .toolbar-meta {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .toolbar-meta-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
 
-  .row-card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
-  .row-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-  .who { min-width: 0; }
-  .uname { font-weight: 600; font-size: 15px; }
-  .uemail { color: #9a9a9a; font-size: 13px; margin-top: 1px; word-break: break-all; }
-  .badges { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
-  .badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
-  .badge.banned { background: rgba(255,71,71,.15); color: #ff6b6b; border: 1px solid rgba(255,71,71,.3); }
-  .badge.warncount { background: #202020; color: #9a9a9a; border: 1px solid #2a2a2a; }
+  /* User Cards / Rows */
+  .user-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+  }
+  .user-card:hover {
+    border-color: var(--border-light);
+    background: var(--bg-surface-elevated);
+  }
+  .row-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .who {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+  .avatar-box {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--bg-surface-hover);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text-secondary);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .avatar-box .avatar-clip {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .avatar-box .avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .status-indicator {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    border: 2px solid var(--bg-surface);
+    background: var(--text-muted);
+    z-index: 1;
+  }
+  .status-indicator.online {
+    background: var(--success);
+    box-shadow: 0 0 0 1px var(--success-subtle);
+  }
+  .status-indicator.offline {
+    background: var(--text-muted);
+  }
 
-  .uname-row { display: flex; align-items: center; gap: 7px; }
-  .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: #4a4a4a; }
-  .status-dot.online { background: #2ecc71; box-shadow: 0 0 0 2px rgba(46,204,113,.2); }
-  .status-dot.offline { background: #4a4a4a; }
+  .user-info {
+    min-width: 0;
+  }
+  .uname-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .uname {
+    font-weight: 600;
+    font-size: 14.5px;
+    color: var(--text-primary);
+  }
+  .uemail {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-top: 2px;
+    word-break: break-all;
+  }
+  .badges {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .badge.banned {
+    background: var(--danger-subtle);
+    color: #f87171;
+    border: 1px solid var(--danger-border);
+  }
+  .badge.warncount {
+    background: var(--bg-base);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
 
-  .actions { display: flex; gap: 8px; flex-shrink: 0; }
+  /* Actions */
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
   .actions button {
-    border: 1px solid #2a2a2a; background: #121414; color: #e3e2e2; border-radius: 8px;
-    padding: 8px 12px; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap;
+    border: 1px solid var(--border);
+    background: var(--bg-base);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
   }
-  .actions button:hover { background: #252525; }
-  .actions button.warn { color: #f5a524; }
-  .actions button.ban { color: #ff6b6b; }
-  .actions button.ban.active { background: rgba(255,71,71,.15); border-color: rgba(255,71,71,.4); }
-  .actions button:disabled { opacity: .4; cursor: default; }
-  .actions button.troll { color: #b06bff; }
+  .actions button:hover {
+    background: var(--bg-surface-hover);
+    border-color: var(--border-light);
+  }
+  .actions button.icon-btn {
+    padding: 8px 10px;
+    color: var(--text-secondary);
+  }
+  .actions button.icon-btn:hover {
+    color: var(--text-primary);
+  }
+  .actions button.warn {
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.25);
+  }
+  .actions button.warn:hover {
+    background: var(--warning-subtle);
+    border-color: var(--warning-border);
+  }
+  .actions button.ban {
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.25);
+  }
+  .actions button.ban:hover {
+    background: var(--danger-subtle);
+    border-color: var(--danger-border);
+  }
+  .actions button.ban.active {
+    background: var(--danger-subtle);
+    border-color: var(--danger-border);
+    color: #fca5a5;
+  }
+  .actions button.troll {
+    color: #c084fc;
+    border-color: rgba(192, 132, 252, 0.25);
+  }
+  .actions button.troll:hover {
+    background: var(--purple-subtle);
+    border-color: rgba(192, 132, 252, 0.4);
+  }
+  .actions button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
 
+  /* Troll dropdown menu */
   .troll-wrap { position: relative; }
   .troll-menu {
-    display: none; position: absolute; top: calc(100% + 6px); right: 0; z-index: 20;
-    min-width: 190px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px;
-    padding: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.4);
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 50;
+    min-width: 200px;
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    padding: 6px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6);
   }
   .troll-menu.open { display: block; }
   .troll-menu button {
-    display: block; width: 100%; text-align: left; background: none; border: none;
-    color: #e3e2e2; font-size: 13px; padding: 9px 10px; border-radius: 7px; cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 13px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
   }
-  .troll-menu button:hover { background: #252525; }
+  .troll-menu button:hover {
+    background: var(--bg-surface-hover);
+  }
 
-  #empty, #loading { text-align: center; color: #9a9a9a; padding: 40px 0; font-size: 14px; }
+  /* Empty and Loading states */
+  #empty, #loading {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 60px 20px;
+    font-size: 14px;
+    background: var(--bg-surface);
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+  }
+  .spinner {
+    display: inline-block;
+    width: 20px; height: 20px;
+    border: 2px solid var(--primary);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin-bottom: 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    .spinner { animation-duration: 1.6s; }
+  }
 
+  /* Modals */
   .modal-overlay {
-    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6);
-    align-items: center; justify-content: center; padding: 16px; z-index: 100;
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 100;
   }
-  .modal-overlay.open { display: flex; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  .modal-overlay.open {
+    display: flex;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
   .modal-card {
-    width: 100%; max-width: 360px; background: #1a1a1a; border: 1px solid #2a2a2a;
-    border-radius: 16px; padding: 20px;
+    width: 100%;
+    max-width: 400px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.6);
   }
-  #data-modal .modal-card { max-width: 560px; }
+  #data-modal .modal-card {
+    max-width: 640px;
+  }
+  .modal-card h2 {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  .modal-card .modal-sub {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin: 0 0 18px;
+    word-break: break-all;
+    line-height: 1.4;
+  }
+  .modal-card label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .modal-card select,
+  .modal-card input[type="text"] {
+    width: 100%;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: var(--text-primary);
+    font-size: 14px;
+    outline: none;
+    margin-bottom: 16px;
+    transition: border-color 0.15s ease;
+  }
+  .modal-card select:focus,
+  .modal-card input[type="text"]:focus {
+    border-color: var(--primary);
+  }
   #data-json {
-    width: 100%; min-height: 340px; background: #121414; border: 1px solid #2a2a2a; border-radius: 10px;
-    padding: 10px 12px; color: #e3e2e2; font-size: 12.5px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    outline: none; resize: vertical; white-space: pre; margin-bottom: 6px; line-height: 1.5;
+    width: 100%;
+    min-height: 340px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--text-primary);
+    font-size: 12.5px;
+    font-family: 'JetBrains Mono', monospace;
+    outline: none;
+    resize: vertical;
+    white-space: pre;
+    margin-bottom: 8px;
+    line-height: 1.5;
   }
-  #data-json:focus { border-color: #007bff; }
-  .modal-card h2 { font-size: 16px; margin: 0 0 2px; }
-  .modal-card .modal-sub { color: #9a9a9a; font-size: 13px; margin: 0 0 16px; word-break: break-all; }
-  .modal-card label { display: block; font-size: 12px; color: #9a9a9a; margin-bottom: 6px; font-weight: 600; }
-  .modal-card select, .modal-card input[type="text"] {
-    width: 100%; background: #121414; border: 1px solid #2a2a2a; border-radius: 10px;
-    padding: 10px 12px; color: #e3e2e2; font-size: 14px; outline: none; margin-bottom: 14px;
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 18px;
   }
-  .modal-card select:focus, .modal-card input[type="text"]:focus { border-color: #007bff; }
-  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
   .modal-actions button {
-    border: 1px solid #2a2a2a; background: #121414; color: #e3e2e2; border-radius: 10px;
-    padding: 10px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--bg-base);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
   }
-  .modal-actions button.confirm { background: #ff4747; border-color: #ff4747; color: #fff; }
-  .modal-actions button.confirm-warn { background: #f5a524; border-color: #f5a524; color: #1a1200; }
-  .modal-actions button:disabled { opacity: .5; cursor: default; }
-
-  .actions button.icon-btn { padding: 8px 10px; color: #9a9a9a; display: flex; align-items: center; }
-  .actions button.icon-btn:hover { color: #e3e2e2; }
+  .modal-actions button:hover {
+    background: var(--bg-surface-hover);
+    border-color: var(--border-light);
+  }
+  .modal-actions button.confirm {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: #fff;
+  }
+  .modal-actions button.confirm:hover {
+    background: #dc2626;
+  }
+  .modal-actions button.confirm-warn {
+    background: var(--warning);
+    border-color: var(--warning);
+    color: #1a1200;
+  }
+  .modal-actions button.confirm-warn:hover {
+    background: #d97706;
+  }
+  .modal-actions button:disabled { opacity: .5; cursor: not-allowed; }
 </style>
-</head>
+<style>.troll-menu button[data-troll-nav="root"] { display: flex !important; align-items: center !important; justify-content: flex-start !important; gap: 6px !important; text-align: left !important; width: 100% !important; margin: 0 !important; } .troll-menu button[data-troll-nav="root"] i { margin-right: 0 !important; font-size: 11px; }</style></head>
 <body>
 
+<!-- Login View -->
 <div id="login-card">
-  <h1>Solaris Admin</h1>
-  <input id="li-code" type="password" inputmode="numeric" placeholder="Access code" autocomplete="off" />
-  <button id="li-btn">Enter</button>
+  <div class="brand-header">
+    <h1 class="">Solaris Admin</h1>
+  </div>
+  <p class="login-desc">Enter authorization code to access the management portal.</p>
+  <input id="li-code" type="password" placeholder="Access code" autocomplete="off">
+  <button id="li-btn" class="">Enter Dashboard</button>
   <div id="login-error"></div>
 </div>
 
-<div class="wrap" id="dash">
-  <h1>Solaris Admin</h1>
-  <p class="sub">Registered accounts — username and email pulled from <code>solaris_app_data</code>.</p>
-  <div class="toolbar">
-    <input id="search" type="text" placeholder="Search by username or email…" />
-    <button id="signout-btn">Lock</button>
-  </div>
-  <div id="loading">Loading accounts…</div>
-  <div id="empty" style="display:none;">No accounts found.</div>
-  <div id="list"></div>
+<!-- Dashboard View -->
+<div id="dash">
+  <main class="main-wrap">
+    <div class="page-header">
+      <div>
+        <h2 class="">User Management</h2>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-wrap">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input id="search" type="text" placeholder="Search by username or email…">
+      </div>
+      <div class="toolbar-meta-group">
+        <div class="toolbar-meta" id="account-count"></div>
+        <span class="badge-online" id="online-count-badge"><span class="dot"></span><span id="online-count-text">0 Online</span></span>
+      </div>
+    </div>
+
+    <div id="loading">
+      <div class="spinner"></div>
+      <div class="">Loading accounts…</div>
+    </div>
+    <div id="empty" style="display:none;" class="">No accounts matched your search query.</div>
+    <div id="list"></div>
+  </main>
 </div>
 
+<!-- Ban Modal -->
 <div class="modal-overlay" id="ban-modal">
   <div class="modal-card">
-    <h2>Ban user</h2>
+    <h2 class="">Ban User</h2>
     <p class="modal-sub" id="ban-modal-who"></p>
-    <label for="ban-duration">Duration</label>
+    <label for="ban-duration" class="">Duration</label>
     <select id="ban-duration">
       <option value="1h">1 hour</option>
       <option value="3h">3 hours</option>
@@ -164,39 +649,41 @@
       <option value="2mo">2 months</option>
       <option value="permanent">Permanent</option>
     </select>
-    <label for="ban-reason">Reason (required)</label>
-    <input id="ban-reason" type="text" placeholder="Reason…" autocomplete="off" />
-    <div id="ban-reason-error" style="display:none; color:#ff6b6b; font-size:12px; margin:-10px 0 14px;">A reason is required.</div>
+    <label for="ban-reason" class="">Reason (required)</label>
+    <input id="ban-reason" type="text" placeholder="Specify suspension rationale…" autocomplete="off">
+    <div id="ban-reason-error" style="display:none; color:#f87171; font-size:12px; margin:-12px 0 14px; font-weight:500;" class="">A reason is required.</div>
     <div class="modal-actions">
-      <button id="ban-cancel-btn" type="button">Cancel</button>
-      <button id="ban-confirm-btn" class="confirm" type="button">Ban</button>
+      <button id="ban-cancel-btn" type="button" class="">Cancel</button>
+      <button id="ban-confirm-btn" class="confirm" type="button">Apply Ban</button>
     </div>
   </div>
 </div>
 
+<!-- Warn Modal -->
 <div class="modal-overlay" id="warn-modal">
   <div class="modal-card">
-    <h2>Warn user</h2>
+    <h2 class="">Issue Warning</h2>
     <p class="modal-sub" id="warn-modal-who"></p>
-    <label for="warn-reason">Reason (required)</label>
-    <input id="warn-reason" type="text" placeholder="Reason…" autocomplete="off" />
-    <div id="warn-reason-error" style="display:none; color:#ff6b6b; font-size:12px; margin:-10px 0 14px;">A reason is required.</div>
+    <label for="warn-reason" class="">Reason (required)</label>
+    <input id="warn-reason" type="text" placeholder="Specify notice or violation…" autocomplete="off">
+    <div id="warn-reason-error" style="display:none; color:#f87171; font-size:12px; margin:-12px 0 14px; font-weight:500;" class="">A reason is required.</div>
     <div class="modal-actions">
-      <button id="warn-cancel-btn" type="button">Cancel</button>
-      <button id="warn-confirm-btn" class="confirm-warn" type="button">Warn</button>
+      <button id="warn-cancel-btn" type="button" class="">Cancel</button>
+      <button id="warn-confirm-btn" class="confirm-warn" type="button">Send Warning</button>
     </div>
   </div>
 </div>
 
+<!-- Data Inspection Modal -->
 <div class="modal-overlay" id="data-modal">
   <div class="modal-card">
-    <h2>Check Data</h2>
+    <h2 class="">Account Data Snapshot</h2>
     <p class="modal-sub" id="data-modal-who"></p>
-    <label for="data-json">Synced local storage snapshot (read-only)</label>
-    <textarea id="data-json" spellcheck="false" readonly></textarea>
-    <div id="data-json-error" style="display:none; color:#ff6b6b; font-size:12px; margin:0 0 10px;">Could not load data.</div>
+    <label for="data-json" class="">Synced local storage snapshot (read-only)</label>
+    <textarea id="data-json" spellcheck="false" readonly=""></textarea>
+    <div id="data-json-error" style="display:none; color:#f87171; font-size:12px; margin:0 0 10px;" class="">Could not load data.</div>
     <div class="modal-actions">
-      <button id="data-cancel-btn" type="button">Close</button>
+      <button id="data-cancel-btn" type="button" class="">Close</button>
     </div>
   </div>
 </div>
@@ -207,7 +694,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_YAMzS7O3xYrWaFsld8viFQ_Pv0vyjRT';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let rows = [];
-let accessCode = null; // kept in memory only — never written to localStorage
+let accessCode = null;
 
 const $ = (id) => document.getElementById(id);
 
@@ -233,25 +720,112 @@ async function loadRows() {
 
 function render() {
   const q = $('search').value.trim().toLowerCase();
-  const filtered = rows.filter(r =>
-    !q || (r.username || '').toLowerCase().includes(q) || (r.email || '').toLowerCase().includes(q)
-  );
+  const filtered = rows.filter(r => {
+    if (!q) return true;
+    const nameMatch = (r._profileName || r.username || '').toLowerCase().includes(q);
+    const emailMatch = (r.email || '').toLowerCase().includes(q);
+    return nameMatch || emailMatch;
+  });
   $('empty').style.display = filtered.length ? 'none' : 'block';
+  $('account-count').textContent = `${filtered.length} account${filtered.length === 1 ? '' : 's'}`;
   $('list').innerHTML = filtered.map(r => rowHtml(r)).join('');
   filtered.forEach(r => wireRow(r));
   refreshAllStatusDots();
+  loadProfilesForVisibleRows();
 }
 
 // --------------------------------------------------------------------
-// Online/Offline status. Every signed-in mobile client tracks itself
-// (keyed by its own user_id) on one shared Realtime Presence channel,
-// 'online-presence' (see supabase-sync.js). We just join that same
-// channel here — without ever calling track() ourselves, so the admin
-// panel never shows up as an "online account" — and read who else is
-// on it. Presence membership is maintained by Supabase itself off the
-// websocket connection, so a closed tab/lost connection drops out on
-// its own; nothing here needs to poll or time anything out.
+// Live profile sync
 // --------------------------------------------------------------------
+// The account list (admin_list_accounts) only returns username/email/
+// moderation fields — not the profile name/avatar the person actually
+// picked on the profile-selector screen (that lives in the synced
+// solaris_user blob inside solaris_app_data.data). We already have a
+// per-user RPC that can read that blob (admin_get_user_data, used by the
+// Inspect Data modal), so reuse it here instead of needing a new one:
+// fetch it for every row currently on screen and patch the card in
+// place. A postgres_changes subscription on solaris_app_data then keeps
+// each card current the moment that account's row changes (e.g. they
+// rename themselves or pick a new avatar in Settings), with a periodic
+// re-poll as a fallback in case realtime isn't enabled for that table.
+
+const profileFetchInFlight = new Set();
+
+async function loadProfilesForVisibleRows() {
+  const cards = document.querySelectorAll('.user-card[data-uid]');
+  cards.forEach(card => refreshProfileFor(card.dataset.uid));
+}
+
+async function refreshProfileFor(userId) {
+  if (!userId || profileFetchInFlight.has(userId)) return;
+  profileFetchInFlight.add(userId);
+  try {
+    const { data, error } = await sb.rpc('admin_get_user_data', { code: accessCode, target_user_id: userId });
+    if (error) {
+      console.warn('Solaris Admin: profile fetch failed for', userId, error);
+      return;
+    }
+    let profile = null;
+    try {
+      const raw = data && data.solaris_user;
+      profile = raw ? JSON.parse(raw) : null;
+    } catch (e) {}
+    applyProfileToRow(userId, profile);
+  } catch (e) {
+    console.warn('Solaris Admin: profile fetch error for', userId, e);
+  } finally {
+    profileFetchInFlight.delete(userId);
+  }
+}
+
+function applyProfileToRow(userId, profile) {
+  const row = rows.find(r => r.user_id === userId);
+  if (!row) return;
+  const name = (profile && profile.name) ? String(profile.name).trim() : '';
+  const avatar = (profile && profile.avatar) ? String(profile.avatar) : '';
+  if (row._profileName === name && row._profileAvatar === avatar) return; // no change
+  row._profileName = name;
+  row._profileAvatar = avatar;
+
+  const card = document.querySelector(`.user-card[data-uid="${userId}"]`);
+  if (!card) return; // row may have been filtered out by search since
+
+  const displayName = name || row.username || '(no username set)';
+  const unameEl = card.querySelector('[data-uname]');
+  if (unameEl) unameEl.textContent = displayName;
+
+  const initialsEl = card.querySelector('.avatar-initials');
+  const imgEl = card.querySelector('[data-avatar-img]');
+  if (avatar) {
+    if (imgEl) { imgEl.src = avatar; imgEl.style.display = ''; }
+    if (initialsEl) initialsEl.style.display = 'none';
+  } else {
+    if (imgEl) { imgEl.style.display = 'none'; imgEl.removeAttribute('src'); }
+    if (initialsEl) {
+      initialsEl.textContent = (displayName.replace(/[^a-zA-Z0-9]/g, '').slice(0, 2) || 'U').toUpperCase();
+      initialsEl.style.display = '';
+    }
+  }
+}
+
+let profileChangesChannel = null;
+function initProfileChangeSubscription() {
+  profileChangesChannel = sb
+    .channel('admin-profile-changes')
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'solaris_app_data' }, (payload) => {
+      const userId = payload && payload.new && payload.new.user_id;
+      if (userId) refreshProfileFor(userId);
+    })
+    .subscribe();
+}
+initProfileChangeSubscription();
+
+// Fallback in case realtime isn't enabled for solaris_app_data on this
+// project — without this, profile edits would only ever show up after
+// an admin action (ban/warn/etc.) triggers the next loadRows().
+setInterval(loadProfilesForVisibleRows, 30000);
+
+
 let onlineUserIds = new Set();
 let presenceChannel = null;
 
@@ -272,42 +846,62 @@ function refreshAllStatusDots() {
     dot.classList.toggle('offline', !isOnline);
     dot.title = isOnline ? 'Online' : 'Offline';
   });
+  const countEl = $('online-count-text');
+  if (countEl) countEl.textContent = `${onlineUserIds.size} Online`;
 }
 
 initPresenceTracking();
 
 function rowHtml(r) {
-  const name = r.username || '(no username set)';
+  const profileName = (r._profileName || '').trim();
+  const name = profileName || r.username || '(no username set)';
+  const initials = (name.replace(/[^a-zA-Z0-9]/g, '').slice(0, 2) || 'U').toUpperCase();
+  const avatarUrl = r._profileAvatar || '';
   const badges = [
-    r.banned ? `<span class="badge banned">Banned${r.ban_reason ? ': ' + escapeHtml(r.ban_reason) : ''}</span>` : '',
-    r.warning_count ? `<span class="badge warncount">${r.warning_count} warning${r.warning_count === 1 ? '' : 's'} total</span>` : ''
+    r.banned ? `<span class="badge banned"><i class="fa-solid fa-ban"></i> Banned${r.ban_reason ? ': ' + escapeHtml(r.ban_reason) : ''}</span>` : '',
+    r.warning_count ? `<span class="badge warncount"><i class="fa-solid fa-triangle-exclamation"></i> ${r.warning_count} warning${r.warning_count === 1 ? '' : 's'}</span>` : ''
   ].join('');
+
   return `
-    <div class="row-card" data-uid="${r.user_id}">
+    <div class="user-card" data-uid="${r.user_id}">
       <div class="row-top">
         <div class="who">
-          <div class="uname-row">
-            <span class="status-dot" data-status-dot="${r.user_id}" title="Offline"></span>
-            <div class="uname">${escapeHtml(name)}</div>
+          <div class="avatar-box">
+            <div class="avatar-clip">
+              <span class="avatar-initials" style="${avatarUrl ? 'display:none;' : ''}">${initials}</span>
+              <img class="avatar-img" data-avatar-img style="${avatarUrl ? '' : 'display:none;'}" src="${avatarUrl ? escapeHtml(avatarUrl) : ''}" alt="" referrerpolicy="no-referrer">
+            </div>
+            <span class="status-indicator" data-status-dot="${r.user_id}" title="Offline"></span>
           </div>
-          <div class="uemail">${escapeHtml(r.email || '')}</div>
-          <div class="badges">${badges}</div>
+          <div class="user-info">
+            <div class="uname-row">
+              <div class="uname" data-uname>${escapeHtml(name)}</div>
+            </div>
+            <div class="uemail">${escapeHtml(r.email || '')}</div>
+            <div class="badges">${badges}</div>
+          </div>
         </div>
         <div class="actions">
-          <button class="icon-btn" data-act="data" title="Check Data" aria-label="Check Data">
-            <i class="fa-solid fa-database" style="font-size:14px;"></i>
+          <button class="icon-btn" data-act="data" title="Inspect Data" aria-label="Inspect Data">
+            <i class="fa-solid fa-database"></i>
           </button>
-          <button class="warn" data-act="warn">Warn</button>
-          <button class="ban ${r.banned ? 'active' : ''}" data-act="ban">${r.banned ? 'Unban' : 'Ban'}</button>
+          <button class="warn" data-act="warn">
+            <i class="fa-solid fa-triangle-exclamation"></i> Warn
+          </button>
+          <button class="ban ${r.banned ? 'active' : ''}" data-act="ban">
+            <i class="fa-solid fa-ban"></i> ${r.banned ? 'Unban' : 'Ban'}
+          </button>
           <div class="troll-wrap">
-            <button class="troll" data-act="troll">Troll</button>
+            <button class="troll" data-act="troll">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> Troll
+            </button>
             <div class="troll-menu" data-menu="root">
-              <button type="button" data-troll-nav="sounds">Sounds ›</button>
-              <button type="button" data-troll-nav="jumpscares">Jumpscares ›</button>
-              <button type="button" data-troll-nav="effects">Screen Effects ›</button>
+              <button type="button" data-troll-nav="sounds"><span>Sounds</span> <i class="fa-solid fa-chevron-right" style="font-size:11px;"></i></button>
+              <button type="button" data-troll-nav="jumpscares"><span>Jumpscares</span> <i class="fa-solid fa-chevron-right" style="font-size:11px;"></i></button>
+              <button type="button" data-troll-nav="effects"><span>Screen Effects</span> <i class="fa-solid fa-chevron-right" style="font-size:11px;"></i></button>
             </div>
             <div class="troll-menu" data-menu="sounds">
-              <button type="button" data-troll-nav="root">‹ Back</button>
+              <button type="button" data-troll-nav="root"><i class="fa-solid fa-chevron-left" style="font-size:11px; margin-right:6px;"></i> Back</button>
               <button type="button" data-jumpscare="fart">Fart</button>
               <button type="button" data-jumpscare="strict-dad">Weird Strict Dad</button>
               <button type="button" data-jumpscare="apple-pay">Apple Pay</button>
@@ -315,11 +909,11 @@ function rowHtml(r) {
               <button type="button" data-jumpscare="discord">Discord Notification</button>
             </div>
             <div class="troll-menu" data-menu="jumpscares">
-              <button type="button" data-troll-nav="root">‹ Back</button>
+              <button type="button" data-troll-nav="root"><i class="fa-solid fa-chevron-left" style="font-size:11px; margin-right:6px;"></i> Back</button>
               <button type="button" data-jumpscare="fnaf">FNAF Jumpscare</button>
             </div>
             <div class="troll-menu" data-menu="effects">
-              <button type="button" data-troll-nav="root">‹ Back</button>
+              <button type="button" data-troll-nav="root"><i class="fa-solid fa-chevron-left" style="font-size:11px; margin-right:6px;"></i> Back</button>
               <button type="button" data-jumpscare="shake">Screen Shake</button>
               <button type="button" data-jumpscare="flip">Screen Flip</button>
               <button type="button" data-jumpscare="wobble">Screen Wobble</button>
@@ -331,7 +925,7 @@ function rowHtml(r) {
 }
 
 function wireRow(r) {
-  const card = document.querySelector(`.row-card[data-uid="${r.user_id}"]`);
+  const card = document.querySelector(`.user-card[data-uid="${r.user_id}"]`);
   if (!card) return;
 
   const trollBtn = card.querySelector('button[data-act="troll"]');
@@ -345,19 +939,15 @@ function wireRow(r) {
   function showTrollMenu(which) {
     trollMenus.forEach(m => m.classList.toggle('open', m === which));
   }
-  function closeTrollMenu() {
-    trollMenus.forEach(m => m.classList.remove('open'));
-  }
 
   if (trollBtn && rootMenu) {
     trollBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       const wasOpen = [...trollMenus].some(m => m.classList.contains('open'));
       document.querySelectorAll('.troll-menu.open').forEach(m => m.classList.remove('open'));
-      if (!wasOpen) showTrollMenu(rootMenu); // always reopen on the root menu
+      if (!wasOpen) showTrollMenu(rootMenu);
     });
 
-    // Sounds › / Jumpscares › / ‹ Back — just switch which panel of the dropdown shows.
     const navTargets = { sounds: soundsMenu, jumpscares: jumpscaresMenu, effects: effectsMenu, root: rootMenu };
     trollWrap.querySelectorAll('button[data-troll-nav]').forEach(item => {
       item.addEventListener('click', (e) => {
@@ -367,13 +957,6 @@ function wireRow(r) {
       });
     });
 
-    // Sounds (Fart, Weird Strict Dad) and Jumpscares (FNAF) both send the same
-    // one-off Supabase realtime broadcast on this user's 'jumpscare:<user_id>'
-    // channel; index.html (via supabase-sync.js) is listening on that same
-    // channel and reacts to it — playing just the sound for a Sounds entry,
-    // or the full jumpscare overlay for a Jumpscares entry — when it arrives.
-    // Nothing is stored — if the person isn't online right now, there's
-    // simply nothing to receive it.
     trollWrap.querySelectorAll('button[data-jumpscare]').forEach(item => {
       item.addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -386,7 +969,7 @@ function wireRow(r) {
           item.disabled = false;
           item.textContent = original;
         } catch (err) {
-          item.textContent = 'Could Not be Sent';
+          item.textContent = 'Could Not Send';
           window.setTimeout(() => {
             item.disabled = false;
             item.textContent = original;
@@ -397,25 +980,25 @@ function wireRow(r) {
   }
 
   card.querySelectorAll('button[data-act]').forEach(btn => {
-    if (btn.dataset.act === 'troll') return; // handled above, not a Supabase action
+    if (btn.dataset.act === 'troll') return;
     btn.addEventListener('click', async () => {
       const act = btn.dataset.act;
       btn.disabled = true;
       try {
         if (act === 'data') {
           openDataModal(r, btn);
-          return; // modal handles the reload/close + re-enabling
+          return;
         }
         if (act === 'warn') {
           openWarnModal(r, btn);
-          return; // modal handles the call + re-enabling + reload
+          return;
         }
         if (act === 'ban') {
           if (r.banned) {
             await call('admin_unban_user', { code: accessCode, target_user_id: r.user_id });
           } else {
             openBanModal(r, btn);
-            return; // modal handles the call + re-enabling + reload
+            return;
           }
         }
         await loadRows();
@@ -432,10 +1015,6 @@ async function call(fn, args) {
   if (error) throw error;
 }
 
-// Sends a jumpscare to one account via a Supabase realtime broadcast on
-// 'jumpscare:<target_user_id>' — a throwaway channel just for this message,
-// not a database row. Resolves once the message has actually gone out (or
-// rejects on failure/timeout) so the button can show "Sending…" honestly.
 function sendJumpscare(targetUserId, kind) {
   return new Promise((resolve, reject) => {
     let settled = false;
@@ -444,7 +1023,7 @@ function sendJumpscare(targetUserId, kind) {
       if (settled) return;
       settled = true;
       try { sb.removeChannel(channel); } catch (e) {}
-      reject(new Error('Timed out — they may not be online right now.'));
+      reject(new Error('Timed out — user may be offline.'));
     }, 6000);
 
     channel.subscribe((status) => {
@@ -472,11 +1051,10 @@ document.addEventListener('click', () => {
   document.querySelectorAll('.troll-menu.open').forEach(m => m.classList.remove('open'));
 });
 
-let banCtx = null; // { r, btn } for the row currently in the ban modal
-
+let banCtx = null;
 function openBanModal(r, btn) {
   banCtx = { r, btn };
-  $('ban-modal-who').textContent = `Choose a duration for ${r.username || r.email}.`;
+  $('ban-modal-who').textContent = `Choose duration and specify reasons for ${r.username || r.email}.`;
   $('ban-duration').value = '1h';
   $('ban-reason').value = '';
   $('ban-reason-error').style.display = 'none';
@@ -517,11 +1095,10 @@ $('ban-confirm-btn').addEventListener('click', async () => {
   }
 });
 
-let warnCtx = null; // { r, btn } for the row currently in the warn modal
-
+let warnCtx = null;
 function openWarnModal(r, btn) {
   warnCtx = { r, btn };
-  $('warn-modal-who').textContent = `Send a warning to ${r.username || r.email}.`;
+  $('warn-modal-who').textContent = `Issue an official warning to ${r.username || r.email}.`;
   $('warn-reason').value = '';
   $('warn-reason-error').style.display = 'none';
   $('warn-modal').classList.add('open');
@@ -560,18 +1137,15 @@ $('warn-confirm-btn').addEventListener('click', async () => {
   }
 });
 
-let dataCtx = null; // { r, btn } for the row currently in the data modal
-
+let dataCtx = null;
 async function openDataModal(r, btn) {
   dataCtx = { r, btn };
-  $('data-modal-who').textContent = `${r.username || r.email} — this is the account's synced local storage snapshot.`;
-  $('data-json').value = 'Loading…';
+  $('data-modal-who').textContent = `${r.username || r.email} — Synced local storage state snapshot.`;
+  $('data-json').value = 'Loading snapshot…';
   $('data-json-error').style.display = 'none';
   $('data-modal').classList.add('open');
 
   const { data, error } = await sb.rpc('admin_get_user_data', { code: accessCode, target_user_id: r.user_id });
-  // The modal may have been closed (or reopened for someone else) while
-  // this was in flight — don't clobber whatever's showing now.
   if (!dataCtx || dataCtx.r.user_id !== r.user_id) return;
 
   if (error) {
@@ -593,7 +1167,6 @@ $('data-cancel-btn').addEventListener('click', () => closeDataModal(true));
 $('data-modal').addEventListener('click', (e) => { if (e.target === $('data-modal')) closeDataModal(true); });
 
 $('search').addEventListener('input', render);
-$('signout-btn').addEventListener('click', () => location.reload());
 
 $('li-btn').addEventListener('click', doLogin);
 $('li-code').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
@@ -604,12 +1177,14 @@ async function doLogin() {
   const code = $('li-code').value.trim();
   const { error } = await sb.rpc('admin_list_accounts', { code });
   $('li-btn').disabled = false;
-  if (error) { $('login-error').textContent = 'Wrong code.'; return; }
+  if (error) { $('login-error').textContent = 'Invalid access code.'; return; }
   accessCode = code;
   $('login-card').style.display = 'none';
   $('dash').style.display = 'block';
   loadRows();
 }
 </script>
-</body>
-</html>
+
+
+
+</body></html>
