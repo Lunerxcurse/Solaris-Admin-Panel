@@ -615,7 +615,7 @@
     <div class="toolbar">
       <div class="search-wrap">
         <i class="fa-solid fa-magnifying-glass"></i>
-        <input id="search" type="text" placeholder="Search by username or email…">
+        <input id="search" type="text" placeholder="Search by name or username…">
       </div>
       <div class="toolbar-meta-group">
         <div class="toolbar-meta" id="account-count"></div>
@@ -718,13 +718,23 @@ async function loadRows() {
   render();
 }
 
+// The account's username (what shows under the display name). Prefer the
+// value from the account list, fall back to the one synced in the profile blob.
+function usernameFor(r) {
+  return String((r && (r.username || r._profileUsername)) || '').trim().replace(/^@/, '');
+}
+function usernameLabel(r) {
+  const u = usernameFor(r);
+  return u ? '@' + u : '';
+}
+
 function render() {
   const q = $('search').value.trim().toLowerCase();
   const filtered = rows.filter(r => {
     if (!q) return true;
-    const nameMatch = (r._profileName || r.username || '').toLowerCase().includes(q);
-    const emailMatch = (r.email || '').toLowerCase().includes(q);
-    return nameMatch || emailMatch;
+    const nameMatch = (r._profileName || '').toLowerCase().includes(q);
+    const unameMatch = usernameFor(r).toLowerCase().includes(q);
+    return nameMatch || unameMatch;
   });
   $('empty').style.display = filtered.length ? 'none' : 'block';
   $('account-count').textContent = `${filtered.length} account${filtered.length === 1 ? '' : 's'}`;
@@ -783,9 +793,11 @@ function applyProfileToRow(userId, profile) {
   if (!row) return;
   const name = (profile && profile.name) ? String(profile.name).trim() : '';
   const avatar = (profile && profile.avatar) ? String(profile.avatar) : '';
-  if (row._profileName === name && row._profileAvatar === avatar) return; // no change
+  const pUsername = (profile && profile.username) ? String(profile.username).trim() : '';
+  if (row._profileName === name && row._profileAvatar === avatar && row._profileUsername === pUsername) return; // no change
   row._profileName = name;
   row._profileAvatar = avatar;
+  row._profileUsername = pUsername;
 
   const card = document.querySelector(`.user-card[data-uid="${userId}"]`);
   if (!card) return; // row may have been filtered out by search since
@@ -793,6 +805,8 @@ function applyProfileToRow(userId, profile) {
   const displayName = name || row.username || '(no username set)';
   const unameEl = card.querySelector('[data-uname]');
   if (unameEl) unameEl.textContent = displayName;
+  const handleEl = card.querySelector('[data-uhandle]');
+  if (handleEl) handleEl.textContent = usernameLabel(row);
 
   const initialsEl = card.querySelector('.avatar-initials');
   const imgEl = card.querySelector('[data-avatar-img]');
@@ -877,7 +891,7 @@ function rowHtml(r) {
             <div class="uname-row">
               <div class="uname" data-uname>${escapeHtml(name)}</div>
             </div>
-            <div class="uemail">${escapeHtml(r.email || '')}</div>
+            <div class="uemail" data-uhandle>${escapeHtml(usernameLabel(r))}</div>
             <div class="badges">${badges}</div>
           </div>
         </div>
@@ -1056,7 +1070,7 @@ document.addEventListener('click', () => {
 let banCtx = null;
 function openBanModal(r, btn) {
   banCtx = { r, btn };
-  $('ban-modal-who').textContent = `Choose duration and specify reasons for ${r.username || r.email}.`;
+  $('ban-modal-who').textContent = `Choose duration and specify reasons for ${usernameFor(r) || r._profileName || 'this user'}.`;
   $('ban-duration').value = '1h';
   $('ban-reason').value = '';
   $('ban-reason-error').style.display = 'none';
@@ -1100,7 +1114,7 @@ $('ban-confirm-btn').addEventListener('click', async () => {
 let warnCtx = null;
 function openWarnModal(r, btn) {
   warnCtx = { r, btn };
-  $('warn-modal-who').textContent = `Issue an official warning to ${r.username || r.email}.`;
+  $('warn-modal-who').textContent = `Issue an official warning to ${usernameFor(r) || r._profileName || 'this user'}.`;
   $('warn-reason').value = '';
   $('warn-reason-error').style.display = 'none';
   $('warn-modal').classList.add('open');
@@ -1142,7 +1156,7 @@ $('warn-confirm-btn').addEventListener('click', async () => {
 let dataCtx = null;
 async function openDataModal(r, btn) {
   dataCtx = { r, btn };
-  $('data-modal-who').textContent = `${r.username || r.email} — Synced local storage state snapshot.`;
+  $('data-modal-who').textContent = `${usernameFor(r) || r._profileName || 'this user'} — Synced local storage state snapshot.`;
   $('data-json').value = 'Loading snapshot…';
   $('data-json-error').style.display = 'none';
   $('data-modal').classList.add('open');
