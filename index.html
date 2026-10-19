@@ -196,7 +196,7 @@
     font-size: 14px;
     pointer-events: none;
   }
-  #search {
+  #search, #comments-search {
     width: 100%;
     background: var(--bg-surface);
     border: 1px solid var(--border);
@@ -207,7 +207,7 @@
     outline: none;
     transition: all 0.15s ease;
   }
-  #search:focus {
+  #search:focus, #comments-search:focus {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px var(--primary-subtle);
   }
@@ -444,7 +444,7 @@
   }
 
   /* Empty and Loading states */
-  #empty, #loading {
+  #empty, #loading, #comments-empty, #comments-loading {
     text-align: center;
     color: var(--text-secondary);
     padding: 60px 20px;
@@ -462,6 +462,7 @@
     animation: spin 0.7s linear infinite;
     margin-bottom: 12px;
   }
+  #comments-loading .spinner { margin-bottom: 0; }
   @keyframes spin { to { transform: rotate(360deg); } }
   @media (prefers-reduced-motion: reduce) {
     .spinner { animation-duration: 1.6s; }
@@ -589,7 +590,487 @@
   }
   .modal-actions button:disabled { opacity: .5; cursor: not-allowed; }
 </style>
-<style>.troll-menu button[data-troll-nav="root"] { display: flex !important; align-items: center !important; justify-content: flex-start !important; gap: 6px !important; text-align: left !important; width: 100% !important; margin: 0 !important; } .troll-menu button[data-troll-nav="root"] i { margin-right: 0 !important; font-size: 11px; }</style></head>
+<style>.troll-menu button[data-troll-nav="root"] { display: flex !important; align-items: center !important; justify-content: flex-start !important; gap: 6px !important; text-align: left !important; width: 100% !important; margin: 0 !important; } .troll-menu button[data-troll-nav="root"] i { margin-right: 0 !important; font-size: 11px; }</style><link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+<style id="m3-expressive">
+/* =====================================================================
+   Material 3 Expressive — Admin panel
+   Same tokens / shapes / motion as the Solaris mobile app (auth page,
+   Settings, profile sheet, details page): tonal containers, segmented
+   groups (large outer / small inner corners), pill buttons, big rounded
+   filled fields, spring motion.
+   ===================================================================== */
+:root {
+  --m3-primary: #1AABEF;
+  --m3-primary-container: #0B3A4E;
+  --m3-on-primary-container: #FFFFFF;
+  --m3-secondary-container: #26394A;
+  --m3-on-secondary-container: #D3E6F5;
+  --m3-tertiary-container: #3A2F55;
+  --m3-on-tertiary-container: #E6DCFF;
+  --m3-surface: #0E1216;
+  --m3-container: #151A1F;
+  --m3-container-high: #1C2228;
+  --m3-container-highest: #252C33;
+  --m3-on-surface: #E3E8EC;
+  --m3-on-surface-variant: #A7B2BB;
+  --m3-error: #FFB4AB;
+  --m3-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --m3-emphasized: cubic-bezier(0.2, 0, 0, 1);
+}
+
+html { background-color: var(--m3-surface); }
+body {
+  background: var(--m3-surface);
+  color: var(--m3-on-surface);
+  font-family: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+@keyframes m3eRise {
+  from { opacity: 0; transform: translateY(18px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes m3eMenu {
+  from { opacity: 0; transform: translateY(-6px) scale(0.94); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #login-card, #dash .main-wrap, .modal-overlay.open .modal-card, .troll-menu.open { animation: none !important; }
+}
+
+/* ---------- Login card ---------- */
+#login-card {
+  background: var(--m3-container);
+  border: 0;
+  border-radius: 36px 36px 36px 12px;
+  box-shadow: none;
+  padding: 40px 32px;
+  animation: m3eRise 520ms var(--m3-spring) both;
+}
+.brand-header h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+.login-desc { color: var(--m3-on-surface-variant); font-size: 14px; font-weight: 500; }
+#login-card input {
+  background: var(--m3-container-highest);
+  border: 2px solid transparent;
+  border-radius: 18px;
+  color: var(--m3-on-surface);
+  caret-color: var(--m3-primary);
+  padding: 1rem 1.1rem;
+  font-size: 16px;
+  box-shadow: none;
+  transition: border-color 200ms var(--m3-emphasized), background 200ms var(--m3-emphasized);
+}
+#login-card input::placeholder { color: var(--m3-on-surface-variant); opacity: 0.7; }
+#login-card input:focus {
+  border-color: var(--m3-primary);
+  background: var(--m3-container-high);
+  box-shadow: none;
+}
+#login-card button {
+  height: 52px;
+  padding: 0 24px;
+  margin-top: 16px;
+  border: 0;
+  border-radius: 9999px;
+  background: linear-gradient(to right, #1d4ed8, #2563eb);
+  color: #FFFFFF;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  box-shadow: none;
+  transition: transform 300ms var(--m3-spring), border-radius 300ms var(--m3-spring), background 200ms var(--m3-emphasized);
+}
+#login-card button:hover { background: linear-gradient(to right, #2563eb, #3b82f6); }
+#login-card button:active { transform: scale(0.96); border-radius: 18px; }
+#login-error { color: var(--m3-error); }
+
+/* ---------- Page header (section head with the white stick) ---------- */
+#dash .main-wrap { animation: m3eRise 520ms var(--m3-spring) both; }
+.page-header h2 {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: #fff;
+}
+.page-header h2::before {
+  content: ''; flex: none;
+  width: 6px; height: 26px;
+  background: #fff; border-radius: 999px;
+}
+.page-header code {
+  background: var(--m3-container-high);
+  border: 0; border-radius: 8px;
+  color: var(--m3-on-surface);
+}
+
+/* ---------- Toolbar ---------- */
+#search, #comments-search {
+  background: var(--m3-container-highest);
+  border: 2px solid transparent;
+  border-radius: 18px;
+  color: var(--m3-on-surface);
+  caret-color: var(--m3-primary);
+  padding: 0.85rem 1.1rem 0.85rem 2.8rem;
+  font-size: 16px;
+  box-shadow: none;
+  transition: border-color 200ms var(--m3-emphasized), background 200ms var(--m3-emphasized);
+}
+#search::placeholder, #comments-search::placeholder { color: var(--m3-on-surface-variant); opacity: 0.7; }
+#search:focus, #comments-search:focus {
+  border-color: var(--m3-primary);
+  background: var(--m3-container-high);
+  box-shadow: none;
+}
+.search-wrap i { left: 18px; color: var(--m3-on-surface-variant); }
+.toolbar-meta { color: var(--m3-on-surface-variant); font-weight: 600; }
+
+/* ---------- Comments entry point + back button ---------- */
+.subtoolbar { display: flex; justify-content: flex-end; margin: -8px 0 18px; }
+.link-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 36px; padding: 0 16px;
+  border: 0; border-radius: 9999px;
+  background: var(--m3-secondary-container);
+  color: var(--m3-on-secondary-container);
+  font-size: 13px; font-weight: 700; letter-spacing: 0.01em;
+  transition: transform 300ms var(--m3-spring), background 200ms var(--m3-emphasized);
+}
+.link-btn:hover { background: #30485C; color: #fff; }
+.link-btn:active { transform: scale(0.95); }
+.link-btn i { font-size: 12px; }
+.back-btn {
+  background: transparent; color: var(--m3-on-surface-variant);
+  height: auto; padding: 0; margin-bottom: 10px;
+}
+.back-btn:hover { background: transparent; color: #fff; }
+
+/* ---------- Comments list ---------- */
+#comments-list { display: flex; flex-direction: column; gap: 3px; }
+.comment-card {
+  background: var(--m3-container-high);
+  border-radius: 8px;
+  padding: 16px 18px;
+  transition: background 200ms var(--m3-emphasized);
+}
+.comment-card:first-child { border-radius: 28px 28px 8px 8px; }
+.comment-card:last-child  { border-radius: 8px 8px 28px 28px; }
+.comment-card:only-child  { border-radius: 28px; }
+.comment-card:hover { background: var(--m3-container-highest); }
+.comment-top {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 10px; margin-bottom: 6px; flex-wrap: nowrap;
+}
+.comment-who { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1 1 auto; }
+.comment-who-text { min-width: 0; flex: 1 1 auto; }
+.comment-author {
+  font-size: 14px; font-weight: 700; color: #fff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.comment-username {
+  color: var(--m3-on-surface-variant); font-size: 11.5px; font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.comment-meta {
+  color: var(--m3-on-surface-variant); font-size: 12.5px; font-weight: 500;
+  white-space: nowrap; flex: 0 0 auto;
+}
+.comment-on {
+  color: var(--m3-on-surface-variant); font-size: 12.5px; font-weight: 500;
+  margin: 2px 0 10px; display: flex; align-items: center; gap: 6px;
+  min-width: 0; flex-wrap: nowrap;
+}
+.comment-on-label { flex: 0 0 auto; white-space: nowrap; }
+.comment-title-badge {
+  display: inline-block; min-width: 0; flex: 0 1 auto;
+  background: var(--m3-container-highest);
+  border-radius: 8px; padding: 2px 8px;
+  font-size: 11.5px; font-weight: 700; color: var(--m3-on-surface-variant);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.comment-body {
+  color: var(--m3-on-surface);
+  font-size: 14.5px; line-height: 1.5;
+  white-space: pre-wrap; word-break: break-word;
+  margin: 10px 0 10px;
+}
+.comment-edit-box {
+  width: 100%;
+  background: var(--m3-container-highest);
+  border: 2px solid transparent;
+  border-radius: 14px;
+  color: var(--m3-on-surface);
+  caret-color: var(--m3-primary);
+  padding: 10px 12px;
+  font-size: 14.5px; font-family: inherit;
+  resize: vertical; min-height: 64px;
+  margin: 10px 0 2px;
+}
+.comment-edit-box:focus { border-color: var(--m3-primary); outline: none; }
+.comment-charcount {
+  text-align: right;
+  color: var(--m3-on-surface-variant);
+  font-size: 11.5px; font-weight: 600;
+  margin-bottom: 8px;
+}
+.comment-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.comment-actions button {
+  height: 32px; padding: 0 14px;
+  border: 0; border-radius: 9999px;
+  background: var(--m3-secondary-container);
+  color: #fff; font-size: 12.5px; font-weight: 700;
+  transition: transform 300ms var(--m3-spring), background 200ms var(--m3-emphasized);
+}
+.comment-actions button:hover { background: #30485C; }
+.comment-actions button:active { transform: scale(0.94); }
+.comment-actions button.confirm { background: var(--m3-error); color: #690005; }
+.comment-actions button.confirm:hover { background: #FFC7C0; }
+.comment-actions button:disabled { opacity: 0.45; }
+.badge-online {
+  background: var(--m3-primary-container);
+  border: 0;
+  border-radius: 9999px;
+  color: var(--m3-on-primary-container);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ---------- User list: segmented group (3px gaps, big outer / small inner corners) ---------- */
+#list { display: flex; flex-direction: column; gap: 3px; }
+.user-card {
+  background: var(--m3-container-high);
+  border: 0;
+  border-radius: 8px;
+  margin: 0;
+  padding: 16px 18px;
+  transition: background 200ms var(--m3-emphasized);
+}
+.user-card:first-child { border-radius: 28px 28px 8px 8px; }
+.user-card:last-child  { border-radius: 8px 8px 28px 28px; }
+.user-card:only-child  { border-radius: 28px; }
+.user-card:hover { background: var(--m3-container-highest); border: 0; }
+.uname { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; color: #fff; }
+.uemail { color: var(--m3-on-surface-variant); font-size: 14px; font-weight: 500; }
+
+/* Avatar: rounded square, like the profile sheet */
+.avatar-box {
+  width: 48px; height: 48px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.14);
+  border: 0;
+  color: #fff;
+  font-weight: 800;
+  font-size: 15px;
+}
+.avatar-box .avatar-clip { border-radius: 16px; }
+.avatar-box.is-guest .avatar-clip { color: #a3a3a3; font-size: 1.1rem; }
+.status-indicator {
+  width: 14px; height: 14px;
+  right: -4px; bottom: -4px;
+  border: 3px solid var(--m3-container-high);
+  transition: border-color 200ms var(--m3-emphasized);
+}
+.user-card:hover .status-indicator { border-color: var(--m3-container-highest); }
+.status-indicator.online { background: #4ADE80; box-shadow: none; }
+.status-indicator.offline { background: #5C6670; }
+
+/* Badges -> tonal pills */
+.badge { border-radius: 9999px; padding: 5px 10px; font-size: 12px; font-weight: 700; }
+.badge.banned {
+  background: rgba(255, 70, 60, 0.14);
+  color: var(--m3-error);
+  border: 0;
+}
+.badge.warncount {
+  background: var(--m3-secondary-container);
+  color: var(--m3-on-secondary-container);
+  border: 0;
+}
+
+/* ---------- Action buttons: tonal pills with spring press ---------- */
+.actions { gap: 5px; }
+.actions button {
+  height: 34px;
+  padding: 0 12px;
+  gap: 5px;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--m3-secondary-container);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: transform 300ms var(--m3-spring), border-radius 300ms var(--m3-spring), background 200ms var(--m3-emphasized);
+}
+.actions button i { font-size: 12px; }
+.actions button:hover { background: #30485C; border: 0; }
+.actions button:active { transform: scale(0.94); border-radius: 12px; }
+.actions button.icon-btn { width: 34px; padding: 0; justify-content: center; color: var(--m3-on-secondary-container); }
+.actions button.icon-btn:hover { color: #fff; }
+
+/* Warn = tonal amber */
+.actions button.warn { background: #43361A; color: #FFDFA0; border: 0; }
+.actions button.warn:hover { background: #50411F; border: 0; }
+/* Ban = tonal error, filled error when it's an Unban */
+.actions button.ban { background: rgba(255, 70, 60, 0.14); color: var(--m3-error); border: 0; }
+.actions button.ban:hover { background: rgba(255, 70, 60, 0.22); border: 0; }
+.actions button.ban.active { background: var(--m3-error); color: #690005; border: 0; }
+.actions button.ban.active:hover { background: #FFC7C0; border: 0; }
+/* Troll = tertiary container */
+.actions button.troll { background: var(--m3-tertiary-container); color: var(--m3-on-tertiary-container); border: 0; }
+.actions button.troll:hover { background: #46396A; border: 0; }
+.actions button:disabled { opacity: 0.45; }
+
+/* ---------- Troll menu = same dropdown as the mobile season picker ---------- */
+.troll-menu {
+  top: calc(100% + 8px);
+  min-width: 0;
+  width: max-content;
+  background: var(--m3-container-high);
+  border: 0;
+  border-radius: 28px;
+  padding: 8px 0;
+  box-shadow: 0 8px 24px rgba(0,0,0,.5), 0 2px 6px rgba(0,0,0,.4);
+  transform-origin: top right;
+}
+.troll-menu.open { animation: m3eMenu 260ms var(--m3-spring) both; }
+/* plain text rows: no pill / circle behind them (they sit inside .actions, so
+   undo the tonal pill button style that .actions button would give them) */
+.troll-menu button,
+.troll-menu button:hover,
+.troll-menu button:active {
+  height: auto;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  transform: none;
+  box-shadow: none;
+}
+.troll-menu button {
+  padding: 13px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.005em;
+  color: var(--m3-on-surface);
+  white-space: nowrap;
+  transition: color 200ms var(--m3-emphasized);
+}
+.troll-menu button:hover, .troll-menu button:active { color: #fff; }
+.troll-menu button[data-troll-nav] span { margin-inline-end: 18px; }
+
+/* ---------- Empty + loading ---------- */
+#empty, #loading, #comments-empty, #comments-loading {
+  background: var(--m3-container);
+  border: 0;
+  border-radius: 28px;
+  color: var(--m3-on-surface-variant);
+  font-weight: 500;
+}
+.spinner {
+  width: 28px; height: 28px;
+  border: 3.4px solid #f2f2f2;
+  border-right-color: transparent;
+  margin-bottom: 14px;
+}
+
+/* ---------- Dialogs ---------- */
+.modal-overlay { background: rgba(0, 0, 0, 0.6); }
+.modal-overlay.open { backdrop-filter: none; -webkit-backdrop-filter: none; }
+.modal-card {
+  background: var(--m3-container-high);
+  border: 0;
+  border-radius: 32px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.5);
+}
+.modal-overlay.open .modal-card { animation: m3eRise 420ms var(--m3-spring) both; }
+.modal-card h2 { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; color: #fff; margin-bottom: 6px; }
+.modal-card .modal-sub { color: var(--m3-on-surface-variant); font-size: 14px; font-weight: 500; }
+.modal-card label {
+  font-size: 14px; font-weight: 600; letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--m3-on-surface-variant);
+  padding-inline-start: 4px;
+  margin-bottom: 8px;
+}
+.modal-card select,
+.modal-card input[type="text"],
+#data-json {
+  background: var(--m3-container-highest);
+  border: 2px solid transparent;
+  border-radius: 18px;
+  color: var(--m3-on-surface);
+  caret-color: var(--m3-primary);
+  padding: 12px 14px;
+  font-size: 16px;
+  box-shadow: none;
+  transition: border-color 200ms var(--m3-emphasized), background 200ms var(--m3-emphasized);
+}
+#data-json { font-size: 12.5px; padding: 14px 16px; }
+.modal-card select:focus,
+.modal-card input[type="text"]:focus,
+#data-json:focus { border-color: var(--m3-primary); background: var(--m3-container-high); }
+.modal-card input::placeholder { color: var(--m3-on-surface-variant); opacity: 0.7; }
+#ban-reason-error, #warn-reason-error, #data-json-error { color: var(--m3-error) !important; }
+
+.modal-actions { gap: 8px; margin-top: 20px; }
+.modal-actions button {
+  height: 52px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--m3-secondary-container);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: transform 300ms var(--m3-spring), border-radius 300ms var(--m3-spring), background 200ms var(--m3-emphasized);
+}
+.modal-actions button:hover { background: #30485C; border: 0; }
+.modal-actions button:active { transform: scale(0.96); border-radius: 18px; }
+.modal-actions button.confirm { background: var(--m3-error); color: #690005; }
+.modal-actions button.confirm:hover { background: #FFC7C0; }
+.modal-actions button.confirm-warn { background: #FFDFA0; color: #3B2A00; }
+.modal-actions button.confirm-warn:hover { background: #FFE9BF; }
+
+/* ---------- Delete account ---------- */
+/* three-dot menu button: top right of the card, no background circle */
+.user-card { position: relative; padding-right: 52px; }
+.more-wrap { position: absolute; top: 10px; right: 10px; z-index: 5; }
+/* Lift the card whose menu is open above the other cards, so their three-dot buttons don't paint over it */
+.user-card:has(.troll-menu.open) { z-index: 20; }
+.more-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; padding: 0;
+  background: transparent; border: 0; border-radius: 0; box-shadow: none;
+  color: var(--m3-on-surface-variant);
+  font-size: 18px; cursor: pointer;
+  transition: color 200ms var(--m3-emphasized), transform 300ms var(--m3-spring);
+}
+.more-btn:hover { color: #fff; }
+.more-btn:active { transform: scale(0.88); }
+.troll-menu button.danger, .troll-menu button.danger:hover, .troll-menu button.danger:active { color: var(--m3-error); }
+#username-error { color: var(--m3-error); }
+.modal-actions button.confirm-ok { background: #FFFFFF; color: #000000; }
+.modal-actions button.confirm-ok:hover { background: #E6E6E6; }
+.modal-warning { color: var(--m3-error); font-size: 14px; font-weight: 500; line-height: 1.4; margin: 0 0 18px; }
+#delete-error { color: var(--m3-error); }
+.modal-actions button:disabled { opacity: 0.4; }
+
+.mobile-comments-btn { display: none; }
+/* ---------- Small screens: online badge to the right, Comments button centered ---------- */
+@media (max-width: 640px) {
+  #main-view .toolbar-meta-group {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  #main-view .toolbar-meta-group #account-count,
+  #main-view .toolbar-meta-group .badge-online { white-space: nowrap; flex: 0 0 auto; }
+  #main-view .subtoolbar { display: none; }
+  .mobile-comments-btn { display: inline-flex; }
+}
+</style>
+</head>
 <body>
 
 <!-- Login View -->
@@ -606,29 +1087,62 @@
 <!-- Dashboard View -->
 <div id="dash">
   <main class="main-wrap">
-    <div class="page-header">
-      <div>
-        <h2 class="">User Management</h2>
+    <div id="main-view">
+      <div class="page-header">
+        <div>
+          <h2 class="">User Management</h2>
+        </div>
       </div>
+
+      <div class="toolbar">
+        <div class="search-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input id="search" type="text" placeholder="Search by name or username…">
+        </div>
+        <div class="toolbar-meta-group">
+          <div class="toolbar-meta" id="account-count"></div>
+          <button id="open-comments-btn-mobile" type="button" class="link-btn mobile-comments-btn"><i class="fa-solid fa-comments"></i> Comments</button>
+          <span class="badge-online" id="online-count-badge"><span class="dot"></span><span id="online-count-text">0 Online</span></span>
+        </div>
+      </div>
+
+      <div class="subtoolbar">
+        <button id="open-comments-btn" type="button" class="link-btn"><i class="fa-solid fa-comments"></i> Comments</button>
+      </div>
+
+      <div id="loading">
+        <div class="spinner"></div>
+        <div class="">Loading accounts…</div>
+      </div>
+      <div id="empty" style="display:none;" class="">No accounts matched your search query.</div>
+      <div id="list"></div>
     </div>
 
-    <div class="toolbar">
-      <div class="search-wrap">
-        <i class="fa-solid fa-magnifying-glass"></i>
-        <input id="search" type="text" placeholder="Search by name or username…">
+    <div id="comments-view" style="display:none;">
+      <div class="page-header">
+        <div>
+          <button id="comments-back-btn" type="button" class="link-btn back-btn"><i class="fa-solid fa-chevron-left"></i> Back</button>
+          <h2 class="">Comments</h2>
+        </div>
       </div>
-      <div class="toolbar-meta-group">
-        <div class="toolbar-meta" id="account-count"></div>
-        <span class="badge-online" id="online-count-badge"><span class="dot"></span><span id="online-count-text">0 Online</span></span>
-      </div>
-    </div>
 
-    <div id="loading">
-      <div class="spinner"></div>
-      <div class="">Loading accounts…</div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input id="comments-search" type="text" placeholder="Search by username…">
+        </div>
+        <div class="toolbar-meta-group">
+          <div class="toolbar-meta" id="comments-count"></div>
+        </div>
+      </div>
+
+      <div id="comments-loading">
+        <div class="spinner"></div>
+      </div>
+      <div id="comments-empty" style="display:none;" class="">No comments found.</div>
+      <div id="comments-error" style="display:none;" class="modal-warning"></div>
+      <div id="comments-list"></div>
     </div>
-    <div id="empty" style="display:none;" class="">No accounts matched your search query.</div>
-    <div id="list"></div>
   </main>
 </div>
 
@@ -674,6 +1188,50 @@
   </div>
 </div>
 
+<!-- Change Username Modal -->
+<div class="modal-overlay" id="username-modal">
+  <div class="modal-card">
+    <h2>Change Username</h2>
+    <p class="modal-sub" id="username-modal-who"></p>
+    <label for="username-input">New username</label>
+    <input id="username-input" type="text" placeholder="3-24 letters, numbers, . _ -" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="24">
+    <div id="username-error" style="display:none; font-size:12px; margin:-8px 0 14px; font-weight:500;"></div>
+    <div class="modal-actions">
+      <button id="username-cancel-btn" type="button">Cancel</button>
+      <button id="username-confirm-btn" class="confirm-ok" type="button" disabled>Save Username</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Comment Modal -->
+<div class="modal-overlay" id="comment-delete-modal">
+  <div class="modal-card">
+    <h2 class="">Delete Comment</h2>
+    <p class="modal-sub" id="comment-delete-modal-who"></p>
+    <p class="modal-warning" id="comment-delete-modal-preview"></p>
+    <div class="modal-actions">
+      <button id="comment-delete-cancel-btn" type="button" class="">Cancel</button>
+      <button id="comment-delete-confirm-btn" class="confirm" type="button">Delete Forever</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal-card">
+    <h2>Delete Account</h2>
+    <p class="modal-sub" id="delete-modal-who"></p>
+    <p class="modal-warning">This permanently deletes the account and its synced data. It can't be undone.</p>
+    <label for="delete-confirm-input" id="delete-confirm-label"></label>
+    <input id="delete-confirm-input" type="text" placeholder="" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div id="delete-error" style="display:none; font-size:12px; margin:-8px 0 14px; font-weight:500;"></div>
+    <div class="modal-actions">
+      <button id="delete-cancel-btn" type="button">Cancel</button>
+      <button id="delete-confirm-btn" class="confirm" type="button" disabled>Delete Forever</button>
+    </div>
+  </div>
+</div>
+
 <!-- Data Inspection Modal -->
 <div class="modal-overlay" id="data-modal">
   <div class="modal-card">
@@ -702,6 +1260,7 @@ function escapeHtml(s) {
   return (s || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+let accountsSig = '';
 async function loadRows() {
   $('loading').style.display = 'block';
   $('list').innerHTML = '';
@@ -715,6 +1274,7 @@ async function loadRows() {
     return;
   }
   rows = data || [];
+  accountsSig = JSON.stringify(data || []);
   render();
 }
 
@@ -878,6 +1438,16 @@ function rowHtml(r) {
 
   return `
     <div class="user-card" data-uid="${r.user_id}">
+      <div class="more-wrap">
+        <button class="more-btn" type="button" data-more aria-label="More options" aria-haspopup="true">
+          <i class="fa-solid fa-ellipsis-vertical"></i>
+        </button>
+        <div class="troll-menu more-menu" data-menu="more" role="menu">
+          <button type="button" role="menuitem" data-view-comments>View comments</button>
+          <button type="button" role="menuitem" data-change-username>Change Username</button>
+          <button type="button" role="menuitem" class="danger" data-delete-account>Delete Account</button>
+        </div>
+      </div>
       <div class="row-top">
         <div class="who">
           <div class="avatar-box">
@@ -943,6 +1513,35 @@ function rowHtml(r) {
 function wireRow(r) {
   const card = document.querySelector(`.user-card[data-uid="${r.user_id}"]`);
   if (!card) return;
+
+  const moreBtn = card.querySelector('button[data-more]');
+  const moreMenu = card.querySelector('.troll-menu[data-menu="more"]');
+  if (moreBtn && moreMenu) {
+    moreBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const wasOpen = moreMenu.classList.contains('open');
+      document.querySelectorAll('.troll-menu.open').forEach(m => m.classList.remove('open'));
+      if (!wasOpen) moreMenu.classList.add('open');
+    });
+    const vcItem = moreMenu.querySelector('button[data-view-comments]');
+    if (vcItem) vcItem.addEventListener('click', (e) => {
+      e.stopPropagation();
+      moreMenu.classList.remove('open');
+      openCommentsView(usernameLabel(r) || (r._profileName || '').trim());
+    });
+    const unItem = moreMenu.querySelector('button[data-change-username]');
+    if (unItem) unItem.addEventListener('click', (e) => {
+      e.stopPropagation();
+      moreMenu.classList.remove('open');
+      openUsernameModal(r, moreBtn);
+    });
+    const delItem = moreMenu.querySelector('button[data-delete-account]');
+    if (delItem) delItem.addEventListener('click', (e) => {
+      e.stopPropagation();
+      moreMenu.classList.remove('open');
+      openDeleteModal(r, moreBtn);
+    });
+  }
 
   const trollBtn = card.querySelector('button[data-act="troll"]');
   const trollWrap = card.querySelector('.troll-wrap');
@@ -1032,6 +1631,10 @@ async function call(fn, args) {
 }
 
 function sendJumpscare(targetUserId, kind) {
+  return sendBroadcast(targetUserId, 'trigger', { type: kind });
+}
+
+function sendBroadcast(targetUserId, eventName, payload) {
   return new Promise((resolve, reject) => {
     let settled = false;
     const channel = sb.channel('jumpscare:' + targetUserId, { config: { broadcast: { self: false } } });
@@ -1044,7 +1647,7 @@ function sendJumpscare(targetUserId, kind) {
 
     channel.subscribe((status) => {
       if (settled || status !== 'SUBSCRIBED') return;
-      channel.send({ type: 'broadcast', event: 'trigger', payload: { type: kind } })
+      channel.send({ type: 'broadcast', event: eventName, payload: payload })
         .then(() => {
           if (settled) return;
           settled = true;
@@ -1153,6 +1756,117 @@ $('warn-confirm-btn').addEventListener('click', async () => {
   }
 });
 
+// Change username: calls admin_change_username() (see the SQL), which runs the
+// same rename the app does for itself and also moves the account's login to
+// the new name, so the NEW username works at sign-in and the old one stops.
+let usernameCtx = null;
+function usernameValid(v) { return /^[A-Za-z0-9._-]{3,24}$/.test(v) && !/^[-.]|[-.]$/.test(v); }
+function usernameInputClean() { return $('username-input').value.trim().replace(/^@/, ''); }
+function refreshUsernameConfirm() {
+  if (!usernameCtx) return;
+  const v = usernameInputClean();
+  $('username-confirm-btn').disabled = !usernameValid(v) || v === usernameFor(usernameCtx.r);
+}
+
+function openUsernameModal(r, btn) {
+  usernameCtx = { r, btn };
+  $('username-modal-who').textContent = `Change the username for ${usernameLabel(r) || r._profileName || 'this account'}.`;
+  $('username-input').value = usernameFor(r);
+  $('username-error').style.display = 'none';
+  $('username-confirm-btn').disabled = true;
+  $('username-modal').classList.add('open');
+  $('username-input').focus();
+  $('username-input').select();
+}
+
+function closeUsernameModal() {
+  usernameCtx = null;
+  $('username-modal').classList.remove('open');
+}
+
+$('username-input').addEventListener('input', () => {
+  $('username-error').style.display = 'none';
+  refreshUsernameConfirm();
+});
+$('username-input').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !$('username-confirm-btn').disabled) $('username-confirm-btn').click(); });
+$('username-cancel-btn').addEventListener('click', closeUsernameModal);
+$('username-modal').addEventListener('click', (e) => { if (e.target === $('username-modal')) closeUsernameModal(); });
+
+$('username-confirm-btn').addEventListener('click', async () => {
+  if (!usernameCtx) return;
+  const { r } = usernameCtx;
+  const wanted = usernameInputClean();
+  if (!usernameValid(wanted)) return;
+  $('username-confirm-btn').disabled = true;
+  $('username-error').style.display = 'none';
+  try {
+    await call('admin_change_username', { code: accessCode, target_user_id: r.user_id, new_username: wanted });
+    closeUsernameModal();
+    await loadRows();
+  } catch (e) {
+    const m = String((e && e.message) || '');
+    let msg = 'Could not change username: ' + (m || 'unknown error');
+    if (/username_taken/.test(m)) msg = 'That username is already taken.';
+    else if (/invalid_username/.test(m)) msg = 'Username must be 3-24 characters (letters, numbers, . _ -).';
+    $('username-error').textContent = msg;
+    $('username-error').style.display = 'block';
+    $('username-confirm-btn').disabled = false;
+  }
+});
+
+// Delete account: the admin has to type the account's username (or the word
+// DELETE when it has none) before the button unlocks, so a stray tap can't
+// wipe someone. The actual removal happens server-side in admin_delete_user()
+// (see supabase-admin-delete-user.sql).
+let deleteCtx = null;
+function deletePhrase(r) { return usernameFor(r) || 'DELETE'; }
+
+function openDeleteModal(r, btn) {
+  deleteCtx = { r, btn };
+  const phrase = deletePhrase(r);
+  $('delete-modal-who').textContent = `Delete ${usernameLabel(r) || r._profileName || 'this account'}?`;
+  $('delete-confirm-label').textContent = `Type ${phrase} to confirm`;
+  $('delete-confirm-input').placeholder = phrase;
+  $('delete-confirm-input').value = '';
+  $('delete-confirm-btn').disabled = true;
+  $('delete-error').style.display = 'none';
+  $('delete-modal').classList.add('open');
+  $('delete-confirm-input').focus();
+}
+
+function closeDeleteModal(reenableBtn) {
+  if (reenableBtn && deleteCtx) deleteCtx.btn.disabled = false;
+  deleteCtx = null;
+  $('delete-modal').classList.remove('open');
+}
+
+$('delete-confirm-input').addEventListener('input', () => {
+  if (!deleteCtx) return;
+  $('delete-confirm-btn').disabled = $('delete-confirm-input').value.trim().toLowerCase() !== deletePhrase(deleteCtx.r).toLowerCase();
+});
+$('delete-cancel-btn').addEventListener('click', () => closeDeleteModal(true));
+$('delete-modal').addEventListener('click', (e) => { if (e.target === $('delete-modal')) closeDeleteModal(true); });
+
+$('delete-confirm-btn').addEventListener('click', async () => {
+  if (!deleteCtx) return;
+  const { r } = deleteCtx;
+  if ($('delete-confirm-input').value.trim().toLowerCase() !== deletePhrase(r).toLowerCase()) return;
+  $('delete-confirm-btn').disabled = true;
+  $('delete-error').style.display = 'none';
+  try {
+    // Sign the user out of every open device first (best-effort: offline
+    // devices are signed out the next time they load, see supabase-sync.js).
+    try { await sendBroadcast(r.user_id, 'account-deleted', {}); } catch (e) {}
+    await call('admin_delete_user', { code: accessCode, target_user_id: r.user_id });
+    closeDeleteModal(false);
+    await loadRows();
+  } catch (e) {
+    $('delete-error').textContent = 'Could not delete: ' + (e.message || 'unknown error');
+    $('delete-error').style.display = 'block';
+    $('delete-confirm-btn').disabled = false;
+  }
+});
+
 let dataCtx = null;
 async function openDataModal(r, btn) {
   dataCtx = { r, btn };
@@ -1199,6 +1913,360 @@ async function doLogin() {
   $('dash').style.display = 'block';
   loadRows();
 }
+
+// ---------------------------------------------------------------------
+// Comments: every comment on the site (solaris_comments), across every
+// title, with inline edit and delete. Backed by three new RPC functions
+// that mirror the admin_* pattern used everywhere else in this file —
+// admin_list_comments(code), admin_update_comment(code, comment_id,
+// new_body) and admin_delete_comment(code, comment_id) — see the
+// accompanying SQL.
+// ---------------------------------------------------------------------
+let allComments = [];
+let commentsLoaded = false;
+let commentsSig = '';
+let editingCommentId = null;
+const COMMENT_EDIT_MAX = 200;
+
+// Account lookup (name + avatar) for whoever posted a comment, using the
+// same account list already loaded for User Management — no extra query.
+function commentAuthorInfo(c) {
+  if (c.is_guest) return { displayName: 'Guest', username: '@Guest', avatarUrl: '', initials: '', isGuest: true };
+  const match = rows.find((r) => r.user_id === c.user_id);
+  const username = match ? usernameLabel(match) : ''; // '@username', or '' if none set
+  const profileName = match ? (match._profileName || '').trim() : '';
+  const fallback = c.user_id ? ('user ' + String(c.user_id).slice(0, 8)) : 'Unknown';
+  const displayName = profileName || username || fallback;
+  // Only show the username as its own line when it says something the
+  // display name above it doesn't already (i.e. they actually differ).
+  const showUsername = !!(username && username !== displayName);
+  const avatarUrl = (match && match._profileAvatar) || '';
+  const initials = (displayName.replace(/[^a-zA-Z0-9]/g, '').slice(0, 2) || 'U').toUpperCase();
+  return { displayName, username: showUsername ? username : '', avatarUrl, initials, isGuest: false };
+}
+
+// Single best label for a comment's author — used for search matching and
+// the delete-confirm modal, where one line is all there's room for.
+function commentAuthorLabel(c) {
+  if (c.is_guest) return '@Guest';
+  const match = rows.find((r) => r.user_id === c.user_id);
+  if (match) return usernameLabel(match) || match._profileName || '(no username)';
+  return c.user_id ? ('user ' + String(c.user_id).slice(0, 8)) : 'Unknown';
+}
+
+function commentTimeLabel(ts) {
+  try { return new Date(ts).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }); }
+  catch (e) { return ''; }
+}
+
+// ---------------------------------------------------------------------
+// Resolves a comment's content_key ("movie:603" / "tv:1399") to the actual
+// title via TMDB, so the card can say "Commented on <title>" instead of
+// showing the raw key. Reuses one of the site's existing public TMDB keys
+// (see tmdb-key-manager.js) — this is read-only public metadata, so a
+// single key with a plain retry is enough for the occasional admin lookup.
+// Results are cached in memory and every badge for that key is updated in
+// place once the title comes back.
+// ---------------------------------------------------------------------
+const TMDB_KEY = 'b15142dfa85e41840fcd4ab30d82488f';
+const titleCache = new Map(); // content_key -> resolved title, or null while in flight
+const TITLE_DISPLAY_MAX = 32;
+
+function truncateTitle(t) {
+  const s = String(t || '');
+  return s.length > TITLE_DISPLAY_MAX ? s.slice(0, TITLE_DISPLAY_MAX - 1).trimEnd() + '…' : s;
+}
+
+function titleForKey(key) {
+  if (!key) return 'this title';
+  if (!titleCache.has(key)) {
+    titleCache.set(key, null);
+    resolveCommentTitle(key);
+  }
+  const cached = titleCache.get(key);
+  return cached == null ? key : cached;
+}
+
+async function resolveCommentTitle(key) {
+  const [type, id] = String(key).split(':');
+  const path = type === 'tv' ? 'tv' : 'movie';
+  let title = key;
+  try {
+    const res = await fetch(`https://api.themoviedb.org/3/${path}/${encodeURIComponent(id || '')}?api_key=${TMDB_KEY}&language=en-US`);
+    const data = await res.json();
+    title = (data && (data.title || data.name)) || key;
+  } catch (e) { /* keep the raw key as a fallback */ }
+  titleCache.set(key, title);
+  document.querySelectorAll('[data-title-key]').forEach((el) => {
+    if (el.getAttribute('data-title-key') === key) {
+      el.textContent = truncateTitle(title);
+      el.title = title;
+    }
+  });
+}
+
+let commentsSearchPrefilled = false;
+async function openCommentsView(presetSearch) {
+  document.querySelectorAll('.troll-menu.open').forEach((m) => m.classList.remove('open'));
+  // Called from the Comments button the argument is a click event, not a string.
+  if (typeof presetSearch === 'string') {
+    $('comments-search').value = presetSearch;
+    commentsSearchPrefilled = true;
+  } else if (commentsSearchPrefilled) {
+    $('comments-search').value = '';
+    commentsSearchPrefilled = false;
+  }
+  $('main-view').style.display = 'none';
+  $('comments-view').style.display = 'block';
+  if (!commentsLoaded) await loadComments();
+  else { renderComments(); syncComments(); }
+}
+
+function closeCommentsView() {
+  editingCommentId = null;
+  $('comments-view').style.display = 'none';
+  $('main-view').style.display = 'block';
+}
+
+async function loadComments() {
+  $('comments-loading').style.display = 'block';
+  $('comments-empty').style.display = 'none';
+  $('comments-error').style.display = 'none';
+  $('comments-list').innerHTML = '';
+
+  const { data, error } = await sb.rpc('admin_list_comments', { code: accessCode });
+  $('comments-loading').style.display = 'none';
+  if (error) {
+    $('comments-error').textContent = 'Could not load comments: ' + (error.message || 'unknown error');
+    $('comments-error').style.display = 'block';
+    return;
+  }
+  commentsLoaded = true;
+  commentsSig = JSON.stringify(data || []);
+  allComments = (data || []).slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  renderComments();
+}
+
+function renderComments() {
+  const q = $('comments-search').value.trim().toLowerCase().replace(/^@/, '');
+  const filtered = !q ? allComments : allComments.filter((c) => {
+    const author = commentAuthorLabel(c).toLowerCase().replace(/^@/, '');
+    return author.includes(q);
+  });
+
+  $('comments-count').textContent = filtered.length + (filtered.length === 1 ? ' comment' : ' comments');
+  $('comments-empty').style.display = filtered.length ? 'none' : 'block';
+  $('comments-list').innerHTML = filtered.map(commentCardHtml).join('');
+  filtered.forEach(wireCommentCard);
+}
+
+function commentCardHtml(c) {
+  const isEditing = editingCommentId === c.id;
+  const author = commentAuthorInfo(c);
+  const title = titleForKey(c.content_key);
+  const bodyLen = (c.body || '').length;
+  return `
+    <div class="comment-card" data-cid="${escapeHtml(String(c.id))}">
+      <div class="comment-top">
+        <div class="comment-who">
+          <div class="avatar-box${author.isGuest ? ' is-guest' : ''}">
+            <div class="avatar-clip">
+              ${author.isGuest
+                ? `<i class="fa-solid fa-user" aria-hidden="true"></i>`
+                : `<span class="avatar-initials" style="${author.avatarUrl ? 'display:none;' : ''}">${escapeHtml(author.initials)}</span>
+                   <img class="avatar-img" style="${author.avatarUrl ? '' : 'display:none;'}" src="${author.avatarUrl ? escapeHtml(author.avatarUrl) : ''}" alt="" referrerpolicy="no-referrer">`}
+            </div>
+          </div>
+          <div class="comment-who-text">
+            <div class="comment-author">${escapeHtml(author.displayName)}</div>
+            ${author.username ? `<div class="comment-username">${escapeHtml(author.username)}</div>` : ''}
+          </div>
+        </div>
+        <div class="comment-meta">${escapeHtml(commentTimeLabel(c.created_at))}${c.edited_at ? ' · edited' : ''}</div>
+      </div>
+      <div class="comment-on"><span class="comment-on-label">Commented on</span> <span class="comment-title-badge" data-title-key="${escapeHtml(c.content_key || '')}" title="${escapeHtml(title)}">${escapeHtml(truncateTitle(title))}</span></div>
+      ${isEditing
+        ? `<textarea class="comment-edit-box" data-edit-box maxlength="${COMMENT_EDIT_MAX}">${escapeHtml(c.body || '')}</textarea>
+           <div class="comment-charcount" data-charcount>${bodyLen}/${COMMENT_EDIT_MAX}</div>`
+        : `<div class="comment-body">${escapeHtml(c.body || '')}</div>`}
+      <div class="comment-actions">
+        ${isEditing
+          ? `<button type="button" data-act="save">Save</button><button type="button" data-act="cancel">Cancel</button>`
+          : `<button type="button" data-act="edit">Edit</button><button type="button" class="confirm" data-act="delete">Delete</button>`}
+      </div>
+    </div>`;
+}
+
+function wireCommentCard(c) {
+  const card = document.querySelector(`.comment-card[data-cid="${c.id}"]`);
+  if (!card) return;
+
+  const editBtn = card.querySelector('button[data-act="edit"]');
+  if (editBtn) editBtn.addEventListener('click', () => {
+    editingCommentId = c.id;
+    renderComments();
+  });
+
+  const cancelBtn = card.querySelector('button[data-act="cancel"]');
+  if (cancelBtn) cancelBtn.addEventListener('click', () => {
+    editingCommentId = null;
+    renderComments();
+  });
+
+  const editBox = card.querySelector('[data-edit-box]');
+  const charCount = card.querySelector('[data-charcount]');
+  if (editBox && charCount) {
+    editBox.addEventListener('input', () => {
+      if (editBox.value.length > COMMENT_EDIT_MAX) editBox.value = editBox.value.slice(0, COMMENT_EDIT_MAX);
+      charCount.textContent = editBox.value.length + '/' + COMMENT_EDIT_MAX;
+    });
+  }
+
+  const saveBtn = card.querySelector('button[data-act="save"]');
+  if (saveBtn) saveBtn.addEventListener('click', async () => {
+    const box = card.querySelector('[data-edit-box]');
+    const newBody = (box.value || '').trim().slice(0, COMMENT_EDIT_MAX);
+    if (!newBody) return;
+    const cancelB = card.querySelector('button[data-act="cancel"]');
+    saveBtn.disabled = true;
+    if (cancelB) cancelB.disabled = true;
+    try {
+      const { error } = await sb.rpc('admin_update_comment', { code: accessCode, comment_id: c.id, new_body: newBody });
+      if (error) throw error;
+      c.body = newBody;
+      editingCommentId = null;
+      renderComments();
+    } catch (e) {
+      alert('Could not save: ' + (e.message || 'unknown error'));
+      saveBtn.disabled = false;
+      if (cancelB) cancelB.disabled = false;
+    }
+  });
+
+  const delBtn = card.querySelector('button[data-act="delete"]');
+  if (delBtn) delBtn.addEventListener('click', () => openCommentDeleteModal(c, delBtn));
+}
+
+// ---------------------------------------------------------------------
+// Delete Comment modal — replaces the native confirm() dialog with the
+// same in-app modal pattern used for Delete Account / Ban / Warn.
+// ---------------------------------------------------------------------
+let commentDeleteCtx = null;
+
+function openCommentDeleteModal(c, btn) {
+  commentDeleteCtx = { c, btn };
+  $('comment-delete-modal-who').textContent = `By ${commentAuthorLabel(c)} on ${titleForKey(c.content_key)}.`;
+  const preview = (c.body || '').length > 140 ? c.body.slice(0, 140) + '…' : (c.body || '');
+  $('comment-delete-modal-preview').textContent = '"' + preview + '" — this cannot be undone.';
+  $('comment-delete-confirm-btn').disabled = false;
+  $('comment-delete-modal').classList.add('open');
+}
+
+function closeCommentDeleteModal(reenableBtn) {
+  if (reenableBtn && commentDeleteCtx) commentDeleteCtx.btn.disabled = false;
+  commentDeleteCtx = null;
+  $('comment-delete-modal').classList.remove('open');
+}
+
+$('comment-delete-cancel-btn').addEventListener('click', () => closeCommentDeleteModal(true));
+$('comment-delete-modal').addEventListener('click', (e) => { if (e.target === $('comment-delete-modal')) closeCommentDeleteModal(true); });
+
+$('comment-delete-confirm-btn').addEventListener('click', async () => {
+  if (!commentDeleteCtx) return;
+  const { c, btn } = commentDeleteCtx;
+  $('comment-delete-confirm-btn').disabled = true;
+  btn.disabled = true;
+  try {
+    const { error } = await sb.rpc('admin_delete_comment', { code: accessCode, comment_id: c.id });
+    if (error) throw error;
+    allComments = allComments.filter((x) => x.id !== c.id);
+    closeCommentDeleteModal(false);
+    renderComments();
+  } catch (e) {
+    alert('Could not delete: ' + (e.message || 'unknown error'));
+    $('comment-delete-confirm-btn').disabled = false;
+    btn.disabled = false;
+  }
+});
+
+// ---------------------------------------------------------------------
+// Realtime: new accounts and new/edited/deleted comments show up on their
+// own. Quiet refetches (no spinner, no list wipe) are triggered by Supabase
+// realtime events where the table has realtime enabled, and by a short
+// poll as a fallback — the admin RPCs are the only reliable read path, so
+// events are treated as "something changed, go look".
+// ---------------------------------------------------------------------
+function adminMenuOpen() {
+  return !!document.querySelector('.troll-menu.open');
+}
+
+let syncAccountsBusy = false;
+async function syncAccounts() {
+  if (!accessCode || syncAccountsBusy || document.hidden) return;
+  syncAccountsBusy = true;
+  try {
+    const { data, error } = await sb.rpc('admin_list_accounts', { code: accessCode });
+    if (error) return;
+    const sig = JSON.stringify(data || []);
+    if (sig === accountsSig) return;
+    // Don't yank an open menu away; the next tick will apply it.
+    if (adminMenuOpen()) return;
+    accountsSig = sig;
+    // Keep the profile name/avatar already fetched for existing accounts so
+    // cards don't flash back to initials while the profile refetch runs.
+    const old = new Map(rows.map((r) => [r.user_id, r]));
+    rows = (data || []).map((r) => {
+      const prev = old.get(r.user_id);
+      if (prev) Object.keys(prev).forEach((k) => { if (k.startsWith('_') && !(k in r)) r[k] = prev[k]; });
+      return r;
+    });
+    render();
+    if (commentsLoaded) renderComments();
+  } catch (e) {
+    console.warn('Solaris Admin: account sync failed', e);
+  } finally {
+    syncAccountsBusy = false;
+  }
+}
+
+let syncCommentsBusy = false;
+async function syncComments() {
+  if (!accessCode || !commentsLoaded || syncCommentsBusy || document.hidden) return;
+  syncCommentsBusy = true;
+  try {
+    const { data, error } = await sb.rpc('admin_list_comments', { code: accessCode });
+    if (error) return;
+    const sig = JSON.stringify(data || []);
+    if (sig === commentsSig) return;
+    // Mid-edit or mid-delete: leave the cards alone and apply on a later tick.
+    if (editingCommentId !== null || commentDeleteCtx) return;
+    commentsSig = sig;
+    allComments = (data || []).slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    renderComments();
+  } catch (e) {
+    console.warn('Solaris Admin: comment sync failed', e);
+  } finally {
+    syncCommentsBusy = false;
+  }
+}
+
+sb.channel('admin-comments-live')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'solaris_comments' }, () => syncComments())
+  .subscribe();
+sb.channel('admin-accounts-live')
+  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'solaris_app_data' }, () => syncAccounts())
+  .subscribe();
+
+setInterval(syncAccounts, 3000);
+setInterval(syncComments, 3000);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) { syncAccounts(); syncComments(); }
+});
+
+$('open-comments-btn').addEventListener('click', openCommentsView);
+$('open-comments-btn-mobile').addEventListener('click', openCommentsView);
+$('comments-back-btn').addEventListener('click', closeCommentsView);
+$('comments-search').addEventListener('input', renderComments);
 </script>
 
 
